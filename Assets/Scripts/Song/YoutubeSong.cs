@@ -33,5 +33,5 @@ public class YoutubeSong : Song
 		File.Delete(TempFilepath);
 	}
 	
-	private string TempFilepath => $"{Application.dataPath}/Temp/{Name}.mp4";
+	private string TempFilepath => $"{Application.dataPath}/Temp/{FullName}.mp4";
 }

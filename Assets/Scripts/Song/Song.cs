@@ -23,7 +23,9 @@ public abstract class Song : ScriptableObject
 		callback(www.GetAudioClip(false, false));
 	}
 
-	protected string Filepath => $"{Application.dataPath}/Music/{Name}.wav";
+	protected string Filepath => $"{Application.dataPath}/Music/{FullName}.wav";
+
+	public string FullName => string.IsNullOrEmpty(Artist) ? Name : $"{Artist} - {Name}";
 
 	protected abstract void Resolve();
 }

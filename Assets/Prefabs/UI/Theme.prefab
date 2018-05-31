@@ -38,6 +38,7 @@ GameObject:
   - component: {fileID: 224125885934104006}
   - component: {fileID: 222356423855579530}
   - component: {fileID: 114957192613832558}
+  - component: {fileID: 114895022733513136}
   m_Layer: 5
   m_Name: Theme
   m_TagString: Untagged
@@ -159,6 +160,18 @@ MonoBehaviour:
   - {fileID: 0}
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &114895022733513136
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1912508550367394}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 97f856476a2733945b90c8b748f8e07c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Text: {fileID: 114293789651591228}
 --- !u!114 &114957192613832558
 MonoBehaviour:
   m_ObjectHideFlags: 1

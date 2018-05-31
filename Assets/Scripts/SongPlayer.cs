@@ -17,7 +17,7 @@ public class SongPlayer : MonoBehaviour
 
 	public void Play()
 	{
-		Debug.Log($"Playing {song.Name}");
+		Debug.Log($"Playing: {song.FullName}");
 		StartCoroutine(song.GetClip(Play));
 	}
 

@@ -10,4 +10,16 @@ public class Theme : ScriptableObject
 	public List<Question> Questions;
 
 	public String Caption;
+	
+	public int Multiplier { get; set; }
+
+	private void OnEnable()
+	{
+		var score = 100;
+		foreach (var question in Questions)
+		{
+			question.Cost = score * Multiplier;
+			score += 100;
+		}
+	}
 }
