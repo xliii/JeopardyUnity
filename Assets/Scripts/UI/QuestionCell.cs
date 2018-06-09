@@ -17,5 +17,13 @@ public class QuestionCell : MonoBehaviour {
 	public void OnClick()
 	{
 		Debug.Log("Click: " + question.name);
+		if (question is MusicalQuestion)
+		{
+			var song = (question as MusicalQuestion).Song;
+		 	var player = FindObjectOfType<SongPlayer>();
+			player.song = song;
+			player.Play();
+		}
+		
 	}
 }
