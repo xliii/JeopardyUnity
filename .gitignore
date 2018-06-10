@@ -36,3 +36,6 @@ sysinfo.txt
 
 # Cached music
 /Assets/Music/
+
+#Discord config
+Discord Config.asset*
