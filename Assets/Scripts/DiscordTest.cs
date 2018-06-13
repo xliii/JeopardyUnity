@@ -13,5 +13,7 @@ public class DiscordTest : MonoBehaviour
 		DiscordBotClient client = new DiscordBotClient(config);
 		var response = client.Channel(config.channelID).AddMessage("Hello world");
 		Debug.Log($"Message added: {response}");
+		var botGateway = client.Gateway().GetBotGateway();
+		Debug.Log($"Bot gateway: {botGateway}");
 	}
 }

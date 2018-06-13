@@ -30,6 +30,17 @@ public abstract class AbstractDiscordApi {
         return request.GetResponse() as HttpWebResponse;       
     }
 
+    protected string GET(string path)
+    {
+        var fullPath = $"{API}/{Path()}/{path}";
+        HttpWebRequest request = WebRequest.CreateHttp(fullPath);
+        request.Method = "GET";
+        request.ContentType = "application/json";
+        client.AddAuthorization(request);
+
+        return GetResponse(request.GetResponse());
+    }
+
     private HttpWebRequest AddPayload(HttpWebRequest request, object payload)
     {
         var json = JsonUtility.ToJson(payload);
@@ -43,7 +54,7 @@ public abstract class AbstractDiscordApi {
         return request;
     }
 
-    private string GetResponse(HttpWebResponse response)
+    private string GetResponse(WebResponse response)
     {
         using (var responseStream = response.GetResponseStream())
         {

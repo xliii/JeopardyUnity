@@ -10,6 +10,11 @@ namespace Discord
         {
             return new Channel(this, id);
         }
+
+        public Gateway Gateway()
+        {
+            return new Gateway(this);
+        }
     }
 }
 
