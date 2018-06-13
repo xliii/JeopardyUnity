@@ -6,9 +6,9 @@ namespace Discord
     {
         private DiscordBotConfig config;
 
-        public DiscordBotClient(DiscordBotConfig config)
-                 {
+        public DiscordBotClient(DiscordBotConfig config) {
             this.config = config;
+            webSocketClient = new DiscordWebSocketClient(Gateway().GetBotGateway().url);
         }
 
         public override HttpWebRequest AddAuthorization(HttpWebRequest request)

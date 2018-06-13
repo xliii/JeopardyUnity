@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using Discord;
+﻿using Discord;
 using UnityEngine;
 
 public class Gateway : AbstractDiscordApi {
@@ -14,8 +12,15 @@ public class Gateway : AbstractDiscordApi {
         return "gateway";
     }
 
-    public string GetBotGateway()
+    public GatewayResponse GetBotGateway()
     {
-        return GET("bot");
-    }
+        var response = GET("bot");
+        return JsonUtility.FromJson<GatewayResponse>(response);
+    }   
+}
+
+public class GatewayResponse
+{
+    public string url;
+    public int shards;
 }
