@@ -12,10 +12,9 @@ namespace Discord
 			this.id = id;
 		}
 
-		public HttpStatusCode AddMessage(string message)
+		public MessageCreateEventData AddMessage(string message)
 		{
-			var response = POST($"{id}/messages", new Message {content = message});
-			return response.StatusCode;
+			return POST<MessageCreateEventData>($"{id}/messages", new Message {content = message});			
 		}
 
 		protected override string Path()

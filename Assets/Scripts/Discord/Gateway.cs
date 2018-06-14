@@ -14,8 +14,7 @@ public class Gateway : AbstractDiscordApi {
 
     public GetBotGatewayResponse GetBotGateway()
     {
-        var response = GET("bot");
-        return JsonUtility.FromJson<GetBotGatewayResponse>(response);
+        return GET<GetBotGatewayResponse>("bot");
     }   
 }
 

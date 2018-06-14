@@ -2,6 +2,7 @@
 using System.Net;
 using System.Text;
 using Discord;
+using Newtonsoft.Json;
 using UnityEngine;
 
 public abstract class AbstractDiscordApi {
@@ -17,7 +18,7 @@ public abstract class AbstractDiscordApi {
 
     private string API = "https://discordapp.com/api";
 
-    protected HttpWebResponse POST(string path, object payload)
+    protected T POST<T>(string path, object payload)
     {
         var fullPath = $"{API}/{Path()}/{path}";
         HttpWebRequest request = WebRequest.CreateHttp(fullPath);
@@ -27,10 +28,11 @@ public abstract class AbstractDiscordApi {
         
         AddPayload(request, payload);
 
-        return request.GetResponse() as HttpWebResponse;       
+        var response = GetResponse(request.GetResponse());
+        return JsonConvert.DeserializeObject<T>(response);
     }
 
-    protected string GET(string path)
+    protected T GET<T>(string path)
     {
         var fullPath = $"{API}/{Path()}/{path}";
         HttpWebRequest request = WebRequest.CreateHttp(fullPath);
@@ -38,10 +40,11 @@ public abstract class AbstractDiscordApi {
         request.ContentType = "application/json";
         client.AddAuthorization(request);
 
-        return GetResponse(request.GetResponse());
+        var response = GetResponse(request.GetResponse());
+        return JsonConvert.DeserializeObject<T>(response);
     }
 
-    private HttpWebRequest AddPayload(HttpWebRequest request, object payload)
+    private void AddPayload(HttpWebRequest request, object payload)
     {
         var json = JsonUtility.ToJson(payload);
         var bytes = encoding.GetBytes(json);
@@ -50,8 +53,6 @@ public abstract class AbstractDiscordApi {
         var stream = request.GetRequestStream();
         stream.Write(bytes, 0, bytes.Length);
         stream.Close();
-
-        return request;
     }
 
     private string GetResponse(WebResponse response)
