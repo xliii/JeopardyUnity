@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿using System;
+using System.Net;
 
 namespace Discord
 {
@@ -18,6 +19,8 @@ namespace Discord
         }
 
         protected override string GatewayUrl => Gateway().GetBotGateway().url;
+
+        protected override string Token => config.token;
     }
 
 }

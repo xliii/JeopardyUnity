@@ -36,12 +36,29 @@ public class DiscordWebSocketClient : IDisposable {
 			switch (payload.OpCode)
 			{
 				case GatewayOpCode.Hello:
-					var helloEventData = Convert<HelloEventData>(payload.Data);									
-					Messenger.Broadcast(GatewayOpCode.Hello.Name(), helloEventData);					
+					var helloData = Convert<HelloEventData>(payload.Data);									
+					Messenger.Broadcast(DiscordEvent.Hello, helloData);					
 					break;
 				case GatewayOpCode.HeartbeatACK:
-					Messenger.Broadcast(GatewayOpCode.HeartbeatACK.Name());
-					break;	
+					Messenger.Broadcast(DiscordEvent.HeartbeatACK);
+					break;
+				case GatewayOpCode.Dispatch:
+					Messenger.Broadcast(DiscordEvent.SequenceNumber, payload.SequenceNumber);
+					switch (payload.EventName)
+					{
+						case TypingStartEventData.Name:
+						{
+							var typingData = Convert<TypingStartEventData>(payload.Data);
+							Messenger.Broadcast(DiscordEvent.TypingStart, typingData);
+							break;
+						}
+						case MessageCreateEventData.Name:
+							var messageData = Convert<MessageCreateEventData>(payload.Data);
+							Messenger.Broadcast(DiscordEvent.MessageCreate, messageData);
+							Debug.Log($"{messageData.author.username}: {messageData.content}");
+							break;
+					}
+					break;
 			}
 		}
 		catch (Exception exception)
@@ -68,17 +85,20 @@ public class DiscordWebSocketClient : IDisposable {
 
 	void OnSent(bool success)
 	{
-		Debug.Log(success ? "Message sent" : "Message failed");
+		if (!success)
+		{
+			Debug.LogError("Send message failed");
+		}
 	}
 
 	void OnClose(object sender, CloseEventArgs e)
 	{
-		Debug.Log($"WebSocket Closed: {e.Reason}");
+		Debug.Log($"WebSocket Closed. Code: {e.Code}. Reason: {e.Reason}");
 	}
 
 	void OnError(object sender, ErrorEventArgs e)
 	{
-		Debug.Log($"WebSocket Error: {e.Message} - {e.Exception}");
+		Debug.Log($"WebSocket Error. Message: {e.Message}. Exception: {e.Exception}");
 	}
 
 	public void Dispose()

@@ -1,8 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-
-public enum GatewayOpCode
+﻿public enum GatewayOpCode
 {
     Dispatch = 0,
     Heartbeat = 1,
@@ -16,12 +12,4 @@ public enum GatewayOpCode
     InvalidSession = 9,
     Hello = 10,
     HeartbeatACK = 11
-}
-
-public static class Extensions
-{
-    public static string Name(this GatewayOpCode opCode)
-    {
-        return opCode.ToString();
-    }
 }
