@@ -121,8 +121,8 @@ GameObject:
   serializedVersion: 5
   m_Component:
   - component: {fileID: 1140122814}
-  - component: {fileID: 1140122813}
   - component: {fileID: 1140122815}
+  - component: {fileID: 1140122813}
   m_Layer: 0
   m_Name: Discord Bot
   m_TagString: Untagged
@@ -138,7 +138,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 1140122812}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: dd53f01b7710dc5468c273c50857f802, type: 3}
+  m_Script: {fileID: 11500000, guid: b859fb7e6ef959e4baf292ba4cce4dbf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   config: {fileID: 11400000, guid: c64e6828d4fd8ad46980d24d96433218, type: 2}

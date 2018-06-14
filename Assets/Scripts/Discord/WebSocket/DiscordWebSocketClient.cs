@@ -54,11 +54,18 @@ public class DiscordWebSocketClient : IDisposable {
 						}
 						case MessageCreateEventData.Name:
 							var messageData = Convert<MessageCreateEventData>(payload.Data);
-							Messenger.Broadcast(DiscordEvent.MessageCreate, messageData);
-							Debug.Log($"{messageData.author.username}: {messageData.content}");
+							Messenger.Broadcast(DiscordEvent.MessageCreate, messageData);							
+							break;
+						case ReadyEventData.Name:
+							var readyData = Convert<ReadyEventData>(payload.Data);
+							Messenger.Broadcast(DiscordEvent.Ready, readyData);							
+							break;
+						case GuildCreateEventData.Name:
+							var guildData = Convert<GuildCreateEventData>(payload.Data);
+							Messenger.Broadcast(DiscordEvent.GuildCreate, guildData);						
 							break;
 					}
-					break;
+					break;				 
 			}
 		}
 		catch (Exception exception)

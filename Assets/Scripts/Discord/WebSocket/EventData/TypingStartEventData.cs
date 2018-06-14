@@ -21,8 +21,12 @@ public class Member
 
 public class User
 {
+    public bool? verified;
     public string username;
+    public bool? mfa_enabled;
     public string id;
+    public string email;
     public string discriminator;
+    public bool? bot;
     public string avatar;
 }

@@ -16,6 +16,12 @@ namespace Discord
             webSocketClient = new DiscordWebSocketClient(GatewayUrl);
             Messenger.AddListener<HelloEventData>(DiscordEvent.Hello, OnHello);
             Messenger.AddListener(DiscordEvent.HeartbeatACK, OnInitialHeartbeatACK);
+            Messenger.AddListener<MessageCreateEventData>(DiscordEvent.MessageCreate, OnMessage);
+        }
+
+        private void OnMessage(MessageCreateEventData e)
+        {
+            Debug.Log($"{e.author.username}: {e.content}");
         }
 
         private void OnInitialHeartbeatACK()

@@ -6,4 +6,6 @@
     public const string SequenceNumber = "Discord.SequenceNumber";
     public const string TypingStart = "Discord.StartTyping";
     public const string MessageCreate = "Discord.MessageCreate";
+    public const string GuildCreate = "Discord.GuildCreate";
+    public const string Ready = "Discord.Ready";
 }
