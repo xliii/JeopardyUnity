@@ -1,4 +1,4 @@
-﻿public class VoiceStateUpdateData : IGatewayEventData
+﻿public class VoiceStateUpdateRequest : IGatewayEventData
 {
 
     public string guild_id;

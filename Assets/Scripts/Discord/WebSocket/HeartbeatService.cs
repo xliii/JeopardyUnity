@@ -4,13 +4,13 @@ using UnityEngine;
 
 public class HeartbeatService : IDisposable
 {
-    private DiscordWebSocketClient client;    
+    private DiscordGatewayClient client;    
     private Timer timer;
     private bool acknowledged = true;
 
     private int? sequenceNumber;
 
-    public HeartbeatService(DiscordWebSocketClient client, int interval)
+    public HeartbeatService(DiscordGatewayClient client, int interval)
     {
         this.client = client;
         Messenger.AddListener(DiscordEvent.HeartbeatACK, OnHeartbeatAck); 

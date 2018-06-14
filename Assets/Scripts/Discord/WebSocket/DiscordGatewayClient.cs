@@ -3,14 +3,14 @@ using Newtonsoft.Json;
 using UnityEngine;
 using WebSocketSharp;
 
-public class DiscordWebSocketClient : IDisposable {
+public class DiscordGatewayClient : IDisposable {
 	
 	private WebSocket ws;
 
 	private int heartbeatInterval;
 	private int? sequenceNumber;
 
-	public DiscordWebSocketClient(string gateway)
+	public DiscordGatewayClient(string gateway)
 	{
 		ws = new WebSocket(gateway);
 		
@@ -47,11 +47,9 @@ public class DiscordWebSocketClient : IDisposable {
 					switch (payload.EventName)
 					{
 						case TypingStartEventData.Name:
-						{
 							var typingData = Convert<TypingStartEventData>(payload.Data);
 							Messenger.Broadcast(DiscordEvent.TypingStart, typingData);
 							break;
-						}
 						case MessageCreateEventData.Name:
 							var messageData = Convert<MessageCreateEventData>(payload.Data);
 							Messenger.Broadcast(DiscordEvent.MessageCreate, messageData);							
@@ -63,6 +61,14 @@ public class DiscordWebSocketClient : IDisposable {
 						case GuildCreateEventData.Name:
 							var guildData = Convert<GuildCreateEventData>(payload.Data);
 							Messenger.Broadcast(DiscordEvent.GuildCreate, guildData);						
+							break;
+						case VoiceServerUpdate.Name:
+							var voiceServerUpdate = Convert<VoiceServerUpdate>(payload.Data);
+							Messenger.Broadcast(DiscordEvent.VoiceServerUpdate, voiceServerUpdate);
+							break;
+						case VoiceStateUpdateResponse.Name:
+							var voiceStateUpdate = Convert<VoiceStateUpdateResponse>(payload.Data);
+							Messenger.Broadcast(DiscordEvent.VoiceStatusUpdate, voiceStateUpdate);
 							break;
 					}
 					break;				 

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Net;
-using Newtonsoft.Json;
 using UnityEngine;
 
 namespace Discord
@@ -9,7 +8,7 @@ namespace Discord
     {
         private HeartbeatService heartbeatService;
         
-        private DiscordWebSocketClient webSocketClient;
+        private DiscordGatewayClient gatewayClient;
 
         public event EventHandler<ReadyEventData> OnReady;
 
@@ -25,7 +24,7 @@ namespace Discord
 
         public void Connect()
         {             
-            webSocketClient = new DiscordWebSocketClient(GatewayUrl);
+            gatewayClient = new DiscordGatewayClient(GatewayUrl);
         }
 
         public void JoinVoice(string guildId, string channelId)
@@ -33,7 +32,7 @@ namespace Discord
             var payload = new GatewayPayload
             {
                 OpCode = GatewayOpCode.VoiceStateUpdate,
-                Data = new VoiceStateUpdateData
+                Data = new VoiceStateUpdateRequest
                 {
                     guild_id = guildId,
                     channel_id = channelId,
@@ -42,7 +41,7 @@ namespace Discord
                 }
             };
             
-            webSocketClient.Send(payload);
+            gatewayClient.Send(payload);
         }
 
         private void OnInitialHeartbeatACK()
@@ -66,7 +65,7 @@ namespace Discord
                 }
             };
             
-            webSocketClient.Send(payload);
+            gatewayClient.Send(payload);
         }
         
         protected abstract string Token { get; }
@@ -87,13 +86,13 @@ namespace Discord
 
         public void Dispose()
         {
-            webSocketClient.Dispose();
+            gatewayClient.Dispose();
             heartbeatService.Dispose();
         }
 
         private void OnHello(HelloEventData e)
         {
-            heartbeatService = new HeartbeatService(webSocketClient, e.heartbeat_interval);
+            heartbeatService = new HeartbeatService(gatewayClient, e.heartbeat_interval);
         }
     }
 }
