@@ -1,10 +1,10 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 [CreateAssetMenu]
 public class DiscordBotConfig : ScriptableObject
 {
 	public string token;
-	public string channelID;
+	public string textChannelID;
+	public string voiceChannelID;
+	public string guildID;		
 }

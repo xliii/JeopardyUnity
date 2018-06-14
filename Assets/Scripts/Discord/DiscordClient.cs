@@ -9,28 +9,49 @@ namespace Discord
     {
         private HeartbeatService heartbeatService;
         
-        protected DiscordWebSocketClient webSocketClient;
-        
-        protected void Init()
+        private DiscordWebSocketClient webSocketClient;
+
+        public event EventHandler<ReadyEventData> OnReady;
+
+        public event EventHandler<MessageCreateEventData> OnMessage;
+
+        protected DiscordClient()
         {
-            webSocketClient = new DiscordWebSocketClient(GatewayUrl);
             Messenger.AddListener<HelloEventData>(DiscordEvent.Hello, OnHello);
             Messenger.AddListener(DiscordEvent.HeartbeatACK, OnInitialHeartbeatACK);
-            Messenger.AddListener<MessageCreateEventData>(DiscordEvent.MessageCreate, OnMessage);
+            Messenger.AddListener<ReadyEventData>(DiscordEvent.Ready, e => OnReady.Invoke(this, e));
+            Messenger.AddListener<MessageCreateEventData>(DiscordEvent.MessageCreate, e => OnMessage.Invoke(this, e));
         }
 
-        private void OnMessage(MessageCreateEventData e)
+        public void Connect()
+        {             
+            webSocketClient = new DiscordWebSocketClient(GatewayUrl);
+        }
+
+        public void JoinVoice(string guildId, string channelId)
         {
-            Debug.Log($"{e.author.username}: {e.content}");
+            var payload = new GatewayPayload
+            {
+                OpCode = GatewayOpCode.VoiceStateUpdate,
+                Data = new VoiceStateUpdateData
+                {
+                    guild_id = guildId,
+                    channel_id = channelId,
+                    self_mute = false,
+                    self_deaf = false
+                }
+            };
+            
+            webSocketClient.Send(payload);
         }
 
         private void OnInitialHeartbeatACK()
         {
             Messenger.RemoveListener(DiscordEvent.HeartbeatACK, OnInitialHeartbeatACK);
-            Debug.Log("Initial ACK");
+            Debug.Log("Initial ACK received. Proceed to Identify");
             
             //Identify
-            var identify = new GatewayPayload
+            var payload = new GatewayPayload
             {
                 OpCode = GatewayOpCode.Identify,
                 Data = new IdentifyEventData
@@ -45,11 +66,6 @@ namespace Discord
                 }
             };
             
-            var payload = JsonConvert.SerializeObject(identify, new JsonSerializerSettings
-            {
-                NullValueHandling = NullValueHandling.Ignore
-            });
-            
             webSocketClient.Send(payload);
         }
         
@@ -57,7 +73,7 @@ namespace Discord
 
         protected abstract string GatewayUrl { get; }
         
-        public abstract HttpWebRequest AddAuthorization(HttpWebRequest request);
+        public abstract void AddAuthorization(HttpWebRequest request);
 
         public Channel Channel(string id)
         {
@@ -71,7 +87,8 @@ namespace Discord
 
         public void Dispose()
         {
-            webSocketClient.Dispose();            
+            webSocketClient.Dispose();
+            heartbeatService.Dispose();
         }
 
         private void OnHello(HelloEventData e)

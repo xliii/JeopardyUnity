@@ -4,7 +4,6 @@ using UnityEngine.UI;
 
 public class DiscordTest : MonoBehaviour
 {
-
 	public InputField input;
 
 	public DiscordBotConfig config;
@@ -13,11 +12,20 @@ public class DiscordTest : MonoBehaviour
 	
 	// Use this for initialization
 	void Start () {
-		client = new DiscordBotClient(config);		
-		var response = client.Channel(config.channelID).AddMessage("Hello world");
-		Debug.Log($"Message added: {response.content}");
-		var botGateway = client.Gateway().GetBotGateway().url;
-		Debug.Log($"Bot gateway: {botGateway}");
+		client = new DiscordBotClient(config);
+		client.OnReady += OnReady;
+		client.OnMessage += OnMessage;
+		client.Connect();
+	}
+
+	private void OnMessage(object sender, MessageCreateEventData e)
+	{
+		Debug.Log($"-- {e.author.username}: {e.content}");
+	}
+
+	private void OnReady(object sender, ReadyEventData e)
+	{
+		client.JoinVoice(config.guildID, config.voiceChannelID);
 	}
 
 	void OnApplicationQuit()
@@ -28,7 +36,7 @@ public class DiscordTest : MonoBehaviour
 	public void SendDiscordMessage()
 	{
 		var message = input.text;
-		var response = client.Channel(config.channelID).AddMessage(message);
+		var response = client.Channel(config.textChannelID).AddMessage(message);
 		Debug.Log($"Message added: {response.content}");
 	}
 }

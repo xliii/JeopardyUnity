@@ -80,14 +80,18 @@ public class DiscordWebSocketClient : IDisposable {
 		return JsonConvert.DeserializeObject<T>(JsonConvert.SerializeObject(obj));
 	}
 	
-	public void Send(string payload)
+	public void Send(object payload)
 	{
 		Send(payload, OnSent);
 	}
 
-	public void Send(string payload, Action<bool> callback)
+	public void Send(object payload, Action<bool> callback)
 	{
-		ws.SendAsync(payload, callback);
+		var json = JsonConvert.SerializeObject(payload, new JsonSerializerSettings
+		{
+			NullValueHandling = NullValueHandling.Ignore
+		});
+		ws.SendAsync(json, callback);
 	}
 
 	void OnSent(bool success)

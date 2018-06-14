@@ -1,13 +1,10 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System;
 using System.Timers;
-using Newtonsoft.Json;
 using UnityEngine;
 
-public class HeartbeatService
+public class HeartbeatService : IDisposable
 {
-    private DiscordWebSocketClient client;
-    private int interval;
+    private DiscordWebSocketClient client;    
     private Timer timer;
     private bool acknowledged = true;
 
@@ -16,7 +13,6 @@ public class HeartbeatService
     public HeartbeatService(DiscordWebSocketClient client, int interval)
     {
         this.client = client;
-        this.interval = interval;
         Messenger.AddListener(DiscordEvent.HeartbeatACK, OnHeartbeatAck); 
         Messenger.AddListener<int?>(DiscordEvent.SequenceNumber, OnSequenceNumberUpdated);
         
@@ -53,6 +49,11 @@ public class HeartbeatService
         };
 
         acknowledged = false;
-        client.Send(JsonConvert.SerializeObject(heartbeat));
+        client.Send(heartbeat);
+    }
+
+    public void Dispose()
+    {
+        timer.Stop();        
     }
 }

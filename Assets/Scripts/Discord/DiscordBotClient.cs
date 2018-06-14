@@ -1,5 +1,4 @@
-﻿using System;
-using System.Net;
+﻿using System.Net;
 
 namespace Discord
 {
@@ -9,13 +8,11 @@ namespace Discord
 
         public DiscordBotClient(DiscordBotConfig config) {
             this.config = config;
-            Init();
         }
 
-        public override HttpWebRequest AddAuthorization(HttpWebRequest request)
+        public override void AddAuthorization(HttpWebRequest request)
         {
-            request.Headers.Add("Authorization", $"Bot {config.token}");
-            return request;
+            request.Headers.Add("Authorization", $"Bot {config.token}");            
         }
 
         protected override string GatewayUrl => Gateway().GetBotGateway().url;
