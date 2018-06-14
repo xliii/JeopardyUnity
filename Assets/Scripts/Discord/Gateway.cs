@@ -12,14 +12,14 @@ public class Gateway : AbstractDiscordApi {
         return "gateway";
     }
 
-    public GatewayResponse GetBotGateway()
+    public GetBotGatewayResponse GetBotGateway()
     {
         var response = GET("bot");
-        return JsonUtility.FromJson<GatewayResponse>(response);
+        return JsonUtility.FromJson<GetBotGatewayResponse>(response);
     }   
 }
 
-public class GatewayResponse
+public class GetBotGatewayResponse
 {
     public string url;
     public int shards;

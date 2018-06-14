@@ -10,7 +10,7 @@ public class DiscordTest : MonoBehaviour
 	
 	// Use this for initialization
 	void Start () {
-		client = new DiscordBotClient(config);
+		client = new DiscordBotClient(config);		
 		var response = client.Channel(config.channelID).AddMessage("Hello world");
 		Debug.Log($"Message added: {response}");
 		var botGateway = client.Gateway().GetBotGateway().url;

@@ -8,7 +8,7 @@ namespace Discord
 
         public DiscordBotClient(DiscordBotConfig config) {
             this.config = config;
-            webSocketClient = new DiscordWebSocketClient(Gateway().GetBotGateway().url);
+            Init();
         }
 
         public override HttpWebRequest AddAuthorization(HttpWebRequest request)
@@ -16,6 +16,8 @@ namespace Discord
             request.Headers.Add("Authorization", $"Bot {config.token}");
             return request;
         }
+
+        protected override string GatewayUrl => Gateway().GetBotGateway().url;
     }
 
 }
