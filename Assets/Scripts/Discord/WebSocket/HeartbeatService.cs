@@ -4,15 +4,15 @@ using UnityEngine;
 
 public class HeartbeatService : IDisposable
 {
-    private DiscordGatewayClient client;    
+    private AbstractGatewayClient gateway;    
     private Timer timer;
     private bool acknowledged = true;
 
     private int? sequenceNumber;
 
-    public HeartbeatService(DiscordGatewayClient client, int interval)
+    public HeartbeatService(AbstractGatewayClient gateway, int interval)
     {
-        this.client = client;
+        this.gateway = gateway;
         Messenger.AddListener(DiscordEvent.HeartbeatACK, OnHeartbeatAck); 
         Messenger.AddListener<int?>(DiscordEvent.SequenceNumber, OnSequenceNumberUpdated);
         
@@ -25,7 +25,7 @@ public class HeartbeatService : IDisposable
 
     private void OnHeartbeatAck()
     {
-        Debug.Log("Heartbeat ACK");
+        Debug.Log($"{gateway.Name}: Heartbeat ACK");
         acknowledged = true;
     }
 
@@ -37,10 +37,10 @@ public class HeartbeatService : IDisposable
 
     private void SendHeartbeat()
     {
-        Debug.Log("Heartbeat");
+        Debug.Log($"{gateway.Name}: Heartbeat");
         if (!acknowledged)
         {
-            Debug.LogError("Previous heartbeat wasn't acknowledged");
+            Debug.LogError($"{gateway.Name}: Previous heartbeat wasn't acknowledged");
         }
         var heartbeat = new GatewayPayload
         {
@@ -49,7 +49,7 @@ public class HeartbeatService : IDisposable
         };
 
         acknowledged = false;
-        client.Send(heartbeat);
+        gateway.Send(heartbeat);
     }
 
     public void Dispose()

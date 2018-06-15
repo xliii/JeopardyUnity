@@ -1,6 +1,7 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 
-public class DiscordVoiceClient
+public class DiscordVoiceClient : IDisposable
 {
 	private DiscordGatewayClient gateway;
 
@@ -12,14 +13,23 @@ public class DiscordVoiceClient
 
 	private DiscordVoiceGatewayClient voiceGateway;
 
+	private HeartbeatService heartbeatService;
+
 	public DiscordVoiceClient(string userId, DiscordGatewayClient gateway)
 	{
 		this.gateway = gateway;
 		this.userId = userId;
 		
 		//Voice initialization
-		Messenger.AddListener<VoiceServerUpdate>(DiscordEvent.VoiceServerUpdate, OnVoiceServerUpdate);
-		Messenger.AddListener<VoiceStateUpdateResponse>(DiscordEvent.VoiceStatusUpdate, OnVoiceStatusUpdate);
+		Messenger.AddListener<VoiceServerUpdate>(DiscordEvent.Voice.ServerUpdate, OnVoiceServerUpdate);
+		Messenger.AddListener<VoiceStateUpdateResponse>(DiscordEvent.Voice.StatusUpdate, OnVoiceStatusUpdate);
+		
+		Messenger.AddListener<HelloEventData>(DiscordEvent.Voice.Hello, OnHello);
+	}
+
+	private void OnHello(HelloEventData e)
+	{
+		heartbeatService = new HeartbeatService(voiceGateway, e.heartbeat_interval);
 	}
 	
 	public void JoinVoice(string guildId, string channelId)
@@ -63,5 +73,11 @@ public class DiscordVoiceClient
 		}
 		
 		voiceGateway = new DiscordVoiceGatewayClient(endpoint);
+	}
+
+	public void Dispose()
+	{
+		voiceGateway.Dispose();
+		heartbeatService.Dispose();
 	}
 }

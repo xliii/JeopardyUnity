@@ -7,7 +7,12 @@
     public const string TypingStart = "Discord.StartTyping";
     public const string MessageCreate = "Discord.MessageCreate";
     public const string GuildCreate = "Discord.GuildCreate";
-    public const string VoiceServerUpdate = "Discord.VoiceServerUpdate";
-    public const string VoiceStatusUpdate = "Discrod.VoiceStatusUpdate";
     public const string Ready = "Discord.Ready";
+
+    public static class Voice
+    {
+        public const string ServerUpdate = "Discord.Voice.ServerUpdate";
+        public const string StatusUpdate = "Discord.Voice.StatusUpdate";
+        public const string Hello = "Discord.Voice.Hello";
+    }
 }
