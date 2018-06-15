@@ -36,7 +36,7 @@ public abstract class AbstractGatewayClient : IDisposable
         }
         catch (Exception exception)
         {
-            Debug.LogError(exception.Message);
+            Debug.LogError($"{Name} Receive Exception: \n  Data: {e.Data} \n\n  Exception: {exception} ");
         }
     }
     

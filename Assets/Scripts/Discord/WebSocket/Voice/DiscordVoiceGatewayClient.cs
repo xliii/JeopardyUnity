@@ -20,36 +20,14 @@
 				var heartbeatData = Convert<int>(payload.Data);
 				Messenger.Broadcast(DiscordEvent.Voice.HeartbeatACK, heartbeatData);
 				break;
-			/*case GatewayOpCode.Dispatch:
-				Messenger.Broadcast(DiscordEvent.SequenceNumber, payload.SequenceNumber);
-				switch (payload.EventName)
-				{
-					case TypingStartEventData.Name:
-						var typingData = Convert<TypingStartEventData>(payload.Data);
-						Messenger.Broadcast(DiscordEvent.TypingStart, typingData);
-						break;
-					case MessageCreateEventData.Name:
-						var messageData = Convert<MessageCreateEventData>(payload.Data);
-						Messenger.Broadcast(DiscordEvent.MessageCreate, messageData);							
-						break;
-					case ReadyEventData.Name:
-						var readyData = Convert<ReadyEventData>(payload.Data);
-						Messenger.Broadcast(DiscordEvent.Ready, readyData);							
-						break;
-					case GuildCreateEventData.Name:
-						var guildData = Convert<GuildCreateEventData>(payload.Data);
-						Messenger.Broadcast(DiscordEvent.GuildCreate, guildData);						
-						break;
-					case VoiceServerUpdate.Name:
-						var voiceServerUpdate = Convert<VoiceServerUpdate>(payload.Data);
-						Messenger.Broadcast(DiscordEvent.Voice.ServerUpdate, voiceServerUpdate);
-						break;
-					case VoiceStateUpdateResponse.Name:
-						var voiceStateUpdate = Convert<VoiceStateUpdateResponse>(payload.Data);
-						Messenger.Broadcast(DiscordEvent.Voice.StatusUpdate, voiceStateUpdate);
-						break;
-				}
-				break;		*/		 
+			case GatewayOpCode.Voice_SessionDescription:
+				var sessionData = Convert<SessionDesciptionResponse>(payload.Data);
+				Messenger.Broadcast(DiscordEvent.Voice.SessionDesciption, sessionData);
+				break;
+			case GatewayOpCode.Voice_Speaking:
+				var speakingData = Convert<SpeakingResponse>(payload.Data);
+				Messenger.Broadcast(DiscordEvent.Voice.Speaking, speakingData);
+				break;
 		}
 		
 	}

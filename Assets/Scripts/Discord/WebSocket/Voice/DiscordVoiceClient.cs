@@ -25,9 +25,32 @@ public class DiscordVoiceClient : IDisposable
 		//Voice initialization
 		Messenger.AddListener<VoiceServerUpdate>(DiscordEvent.Voice.ServerUpdate, OnServerUpdate);
 		Messenger.AddListener<VoiceStateUpdateResponse>(DiscordEvent.Voice.StatusUpdate, OnStatusUpdate);
-		Messenger.AddListener<VoiceReadyResponse>(DiscordEvent.Voice.Ready, OnReady);
-		
 		Messenger.AddListener<HelloEventData>(DiscordEvent.Voice.Hello, OnHello);
+		Messenger.AddListener<VoiceReadyResponse>(DiscordEvent.Voice.Ready, OnReady);
+		Messenger.AddListener<SessionDesciptionResponse>(DiscordEvent.Voice.SessionDesciption, OnSessionDescription);
+		//Messenger.AddListener<SpeakingResponse>(DiscordEvent.Voice.Speaking, OnSpeaking);
+	}
+
+	private void OnSessionDescription(SessionDesciptionResponse e)
+	{
+		udpClient.SecretKey = e.secret_key;
+		ToggleSpeaking(true);
+	}
+
+	private void ToggleSpeaking(bool speaking)
+	{
+		var payload = new GatewayPayload
+		{
+			OpCode = GatewayOpCode.Voice_Speaking,
+			Data = new SpeakingRequest
+			{
+				speaking = speaking,
+				delay = 0,
+				ssrc = udpClient.ssrc
+			}
+		};
+		
+		voiceGateway.Send(payload);
 	}
 
 	private void OnReady(VoiceReadyResponse e)
@@ -35,9 +58,31 @@ public class DiscordVoiceClient : IDisposable
 		//Start heartbeat
 		heartbeatService.Start();
 		//Initialize UDP
-		udpClient = new VoiceUdpClient(e.ip, e.port);
-		udpClient.StartReceiving();
+		udpClient = new VoiceUdpClient(e.ip, e.port, e.ssrc);
+		udpClient.Start();
+		//Select protocol
+		var payload = new GatewayPayload
+		{
+			OpCode = GatewayOpCode.Voice_SelectProtocol,
+			Data = new SelectProtocolRequest
+			{
+				protocol = "udp",
+				data = new ProtocolData
+				{
+					address = "127.0.0.1",
+					port = udpClient.LocalPort,
+					mode = udpClient.Mode
+				}
+			}
+		};
+		voiceGateway.Send(payload);
 	}
+	
+	//TODO: Handle Resume:
+	///<summary>	
+	///See <a href="https://discordapp.com/developers/docs/topics/voice-connections#resuming-voice-connection">Discord API Documentation</a>
+	///</summary>
+	///
 
 	private void OnHello(HelloEventData e)
 	{
