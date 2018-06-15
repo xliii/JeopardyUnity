@@ -51,6 +51,6 @@ public abstract class AbstractHeartbeatService : IHeartbeatService {
 
 	public void Dispose()
 	{
-		timer.Stop();        
+		timer.Stop();
 	}
 }

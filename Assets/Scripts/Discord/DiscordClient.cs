@@ -90,6 +90,7 @@ namespace Discord
         public void Dispose()
         {
             gateway.Dispose();
+            voiceClient.Dispose();
             heartbeatService.Dispose();
         }
 

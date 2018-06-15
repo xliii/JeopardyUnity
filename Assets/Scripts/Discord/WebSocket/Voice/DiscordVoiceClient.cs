@@ -15,6 +15,8 @@ public class DiscordVoiceClient : IDisposable
 
 	private IHeartbeatService heartbeatService;
 
+	private VoiceUdpClient udpClient;
+
 	public DiscordVoiceClient(string userId, DiscordGatewayClient gateway)
 	{
 		this.gateway = gateway;
@@ -32,6 +34,9 @@ public class DiscordVoiceClient : IDisposable
 	{
 		//Start heartbeat
 		heartbeatService.Start();
+		//Initialize UDP
+		udpClient = new VoiceUdpClient(e.ip, e.port);
+		udpClient.StartReceiving();
 	}
 
 	private void OnHello(HelloEventData e)
@@ -99,5 +104,6 @@ public class DiscordVoiceClient : IDisposable
 	{
 		voiceGateway.Dispose();
 		heartbeatService.Dispose();
+		udpClient.Dispose();
 	}
 }
