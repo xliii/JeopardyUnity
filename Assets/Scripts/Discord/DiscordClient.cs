@@ -8,40 +8,43 @@ namespace Discord
     {
         private HeartbeatService heartbeatService;
         
-        private DiscordGatewayClient gatewayClient;
+        private DiscordGatewayClient gateway;
+
+        private DiscordVoiceClient voiceClient;
+
+        private string userId;
 
         public event EventHandler<ReadyEventData> OnReady;
 
         public event EventHandler<MessageCreateEventData> OnMessage;
 
         protected DiscordClient()
-        {
+        {            
+            //Initialization
             Messenger.AddListener<HelloEventData>(DiscordEvent.Hello, OnHello);
             Messenger.AddListener(DiscordEvent.HeartbeatACK, OnInitialHeartbeatACK);
+            OnReady += OnReadyUser;
+            
+            //Public
             Messenger.AddListener<ReadyEventData>(DiscordEvent.Ready, e => OnReady.Invoke(this, e));
             Messenger.AddListener<MessageCreateEventData>(DiscordEvent.MessageCreate, e => OnMessage.Invoke(this, e));
         }
 
+        private void OnReadyUser(object sender, ReadyEventData e)
+        {
+            userId = e.user.id;
+        }
+
         public void Connect()
-        {             
-            gatewayClient = new DiscordGatewayClient(GatewayUrl);
+        {
+            gateway = new DiscordGatewayClient(GatewayUrl);            
         }
 
         public void JoinVoice(string guildId, string channelId)
-        {
-            var payload = new GatewayPayload
-            {
-                OpCode = GatewayOpCode.VoiceStateUpdate,
-                Data = new VoiceStateUpdateRequest
-                {
-                    guild_id = guildId,
-                    channel_id = channelId,
-                    self_mute = false,
-                    self_deaf = false
-                }
-            };
-            
-            gatewayClient.Send(payload);
+        {            
+            if (userId == null) throw new Exception("Client not ready");
+            voiceClient = new DiscordVoiceClient(userId, gateway);
+            voiceClient.JoinVoice(guildId, channelId);
         }
 
         private void OnInitialHeartbeatACK()
@@ -65,7 +68,7 @@ namespace Discord
                 }
             };
             
-            gatewayClient.Send(payload);
+            gateway.Send(payload);
         }
         
         protected abstract string Token { get; }
@@ -86,13 +89,13 @@ namespace Discord
 
         public void Dispose()
         {
-            gatewayClient.Dispose();
+            gateway.Dispose();
             heartbeatService.Dispose();
         }
 
         private void OnHello(HelloEventData e)
         {
-            heartbeatService = new HeartbeatService(gatewayClient, e.heartbeat_interval);
+            heartbeatService = new HeartbeatService(gateway, e.heartbeat_interval);
         }
     }
 }

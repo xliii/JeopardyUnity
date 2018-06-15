@@ -3,11 +3,11 @@ using Newtonsoft.Json;
 using UnityEngine;
 using WebSocketSharp;
 
-public class DiscordGatewayClient : IDisposable {
+public class DiscordVoiceGatewayClient : IDisposable {
 	
 	private WebSocket ws;
 
-	public DiscordGatewayClient(string gateway)
+	public DiscordVoiceGatewayClient(string gateway)
 	{
 		ws = new WebSocket(gateway);
 		
@@ -21,16 +21,16 @@ public class DiscordGatewayClient : IDisposable {
 	
 	void OnOpen(object sender, EventArgs e)
 	{
-		Debug.Log("WebSocket Connected");	
+		Debug.Log("Voice WebSocket Connected");	
 	}
 
 	void OnMessage(object sender, MessageEventArgs e)
 	{
 		try
 		{
-			Debug.Log($"WebSocket Message Received: {e.Data}");
+			Debug.Log($"Voice WebSocket Message Received: {e.Data}");
 			var payload = JsonConvert.DeserializeObject<GatewayPayload>(e.Data);			
-			switch (payload.OpCode)
+			/*switch (payload.OpCode)
 			{
 				case GatewayOpCode.Hello:
 					var helloData = Convert<HelloEventData>(payload.Data);									
@@ -69,7 +69,7 @@ public class DiscordGatewayClient : IDisposable {
 							break;
 					}
 					break;				 
-			}
+			}*/
 		}
 		catch (Exception exception)
 		{
@@ -101,18 +101,18 @@ public class DiscordGatewayClient : IDisposable {
 	{
 		if (!success)
 		{
-			Debug.LogError("Send message failed");
+			Debug.LogError("Voice Send message failed");
 		}
 	}
 
 	void OnClose(object sender, CloseEventArgs e)
 	{
-		Debug.Log($"WebSocket Closed. Code: {e.Code}. Reason: {e.Reason}");
+		Debug.Log($"Voice WebSocket Closed. Code: {e.Code}. Reason: {e.Reason}");
 	}
 
 	void OnError(object sender, ErrorEventArgs e)
 	{
-		Debug.Log($"WebSocket Error. Message: {e.Message}. Exception: {e.Exception}");
+		Debug.Log($"Voice WebSocket Error. Message: {e.Message}. Exception: {e.Exception}");
 	}
 
 	public void Dispose()
