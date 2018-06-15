@@ -6,7 +6,7 @@ namespace Discord
 {
     public abstract class DiscordClient : IDisposable
     {
-        private HeartbeatService heartbeatService;
+        private IHeartbeatService heartbeatService;
         
         private DiscordGatewayClient gateway;
 
@@ -96,6 +96,7 @@ namespace Discord
         private void OnHello(HelloEventData e)
         {
             heartbeatService = new HeartbeatService(gateway, e.heartbeat_interval);
+            heartbeatService.Start();
         }
     }
 }

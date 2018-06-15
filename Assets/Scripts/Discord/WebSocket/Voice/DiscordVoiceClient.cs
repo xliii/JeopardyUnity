@@ -13,7 +13,7 @@ public class DiscordVoiceClient : IDisposable
 
 	private DiscordVoiceGatewayClient voiceGateway;
 
-	private HeartbeatService heartbeatService;
+	private IHeartbeatService heartbeatService;
 
 	public DiscordVoiceClient(string userId, DiscordGatewayClient gateway)
 	{
@@ -21,15 +21,35 @@ public class DiscordVoiceClient : IDisposable
 		this.userId = userId;
 		
 		//Voice initialization
-		Messenger.AddListener<VoiceServerUpdate>(DiscordEvent.Voice.ServerUpdate, OnVoiceServerUpdate);
-		Messenger.AddListener<VoiceStateUpdateResponse>(DiscordEvent.Voice.StatusUpdate, OnVoiceStatusUpdate);
+		Messenger.AddListener<VoiceServerUpdate>(DiscordEvent.Voice.ServerUpdate, OnServerUpdate);
+		Messenger.AddListener<VoiceStateUpdateResponse>(DiscordEvent.Voice.StatusUpdate, OnStatusUpdate);
+		Messenger.AddListener<VoiceReadyResponse>(DiscordEvent.Voice.Ready, OnReady);
 		
 		Messenger.AddListener<HelloEventData>(DiscordEvent.Voice.Hello, OnHello);
 	}
 
+	private void OnReady(VoiceReadyResponse e)
+	{
+		//Start heartbeat
+		heartbeatService.Start();
+	}
+
 	private void OnHello(HelloEventData e)
 	{
-		heartbeatService = new HeartbeatService(voiceGateway, e.heartbeat_interval);
+		var payload = new GatewayPayload
+		{
+			OpCode = GatewayOpCode.Voice_Identify,
+			Data = new VoiceIdentifyRequest
+			{
+				server_id = guildId,
+				user_id = userId,
+				session_id = sessionId,
+				token = token
+			}
+		};
+					
+		voiceGateway.Send(payload);
+		heartbeatService = new VoiceHeartbeatService(voiceGateway, e.heartbeat_interval);
 	}
 	
 	public void JoinVoice(string guildId, string channelId)
@@ -50,13 +70,13 @@ public class DiscordVoiceClient : IDisposable
 	}
 	
 	
-	private void OnVoiceStatusUpdate(VoiceStateUpdateResponse e)
+	private void OnStatusUpdate(VoiceStateUpdateResponse e)
 	{
 		sessionId = e.session_id;
 		TryConnect();
 	}
 
-	private void OnVoiceServerUpdate(VoiceServerUpdate e)
+	private void OnServerUpdate(VoiceServerUpdate e)
 	{
 		endpoint = $"ws://{e.endpoint}";
 		guildId = e.guild_id;

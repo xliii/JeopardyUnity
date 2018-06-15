@@ -12,10 +12,15 @@
 				var helloData = Convert<HelloEventData>(payload.Data);									
 				Messenger.Broadcast(DiscordEvent.Voice.Hello, helloData);					
 				break;
-			/*case GatewayOpCode.HeartbeatACK:
-				Messenger.Broadcast(DiscordEvent.HeartbeatACK);
+			case GatewayOpCode.Voice_Ready:
+				var readyData = Convert<VoiceReadyResponse>(payload.Data);
+				Messenger.Broadcast(DiscordEvent.Voice.Ready, readyData);
 				break;
-			case GatewayOpCode.Dispatch:
+			case GatewayOpCode.Voice_Heartbeat:
+				var heartbeatData = Convert<int>(payload.Data);
+				Messenger.Broadcast(DiscordEvent.Voice.HeartbeatACK, heartbeatData);
+				break;
+			/*case GatewayOpCode.Dispatch:
 				Messenger.Broadcast(DiscordEvent.SequenceNumber, payload.SequenceNumber);
 				switch (payload.EventName)
 				{

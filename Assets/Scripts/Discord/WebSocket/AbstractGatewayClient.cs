@@ -30,7 +30,7 @@ public abstract class AbstractGatewayClient : IDisposable
     {
         try
         {
-            Debug.Log($"WebSocket Message Received: {e.Data}");
+            Debug.Log($"{Name} < {e.Data}");
             var payload = JsonConvert.DeserializeObject<GatewayPayload>(e.Data);
             OnMessage(payload);
         }
@@ -58,6 +58,7 @@ public abstract class AbstractGatewayClient : IDisposable
         {
             NullValueHandling = NullValueHandling.Ignore
         });
+        Debug.Log($"{Name} > {json}");
         ws.SendAsync(json, callback);
     }
 

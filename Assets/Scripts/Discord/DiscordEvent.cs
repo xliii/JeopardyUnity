@@ -14,5 +14,7 @@
         public const string ServerUpdate = "Discord.Voice.ServerUpdate";
         public const string StatusUpdate = "Discord.Voice.StatusUpdate";
         public const string Hello = "Discord.Voice.Hello";
+        public const string Ready = "Discord.Voice.Ready";
+        public const string HeartbeatACK = "Discord.Voice.HeartbeatACK";
     }
 }
