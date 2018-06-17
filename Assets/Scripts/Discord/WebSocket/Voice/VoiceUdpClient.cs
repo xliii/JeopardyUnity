@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Net;
 using System.Net.Sockets;
-using System.Text;
 using System.Threading;
 using UnityEngine;
 
@@ -51,16 +50,19 @@ public class VoiceUdpClient : IDisposable
         //_client.Client.SendTimeout = Timeout;
         
         _receiveThread.Start();
-        //DiscoverIP();
+        DiscoverIP();
     }
 
     private void DiscoverIP()
     {
-        Debug.Log("Discover IP:");
-        byte[] header = BitConverter.GetBytes(ssrc);
-        byte[] data = new byte[74];
-        Array.Copy(header, data, header.Length);
-        Send(data);
+        Debug.Log("Discover IP:");    
+        byte[] packet = new byte[70];
+        packet[0] = (byte)(ssrc >> 24);
+        packet[1] = (byte)(ssrc >> 16);
+        packet[2] = (byte)(ssrc >> 8);
+        packet[3] = (byte)(ssrc >> 0);
+
+        Send(packet);
     }
 
     private void Send(byte[] data)
@@ -82,10 +84,9 @@ public class VoiceUdpClient : IDisposable
         {
             try
             {
-                byte[] data = _client.Receive(ref _endpoint);
-                
-                string text = Encoding.UTF8.GetString(data);
-                Debug.Log($"UDP < {text}");
+                byte[] packet = _client.Receive(ref _endpoint);             
+                logUDP(packet);
+                Messenger.Broadcast(DiscordEvent.Voice.Packet, packet);
             }
             catch (ThreadAbortException)
             {
@@ -96,6 +97,11 @@ public class VoiceUdpClient : IDisposable
                 Debug.LogError($"UDP Receive Exception: {e}");
             }
         }
+    }
+
+    private void logUDP(byte[] packet)
+    {
+        Debug.Log($"UDP < {string.Join(", ", packet)}");
     }
 
     public void Dispose()

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text;
 using UnityEngine;
 
 public class DiscordVoiceClient : IDisposable
@@ -29,12 +30,50 @@ public class DiscordVoiceClient : IDisposable
 		Messenger.AddListener<VoiceReadyResponse>(DiscordEvent.Voice.Ready, OnReady);
 		Messenger.AddListener<SessionDesciptionResponse>(DiscordEvent.Voice.SessionDesciption, OnSessionDescription);
 		//Messenger.AddListener<SpeakingResponse>(DiscordEvent.Voice.Speaking, OnSpeaking);
+		Messenger.AddListener<byte[]>(DiscordEvent.Voice.Packet, OnPacket);
+	}
+
+	private void OnPacket(byte[] packet)
+	{
+		try
+		{
+			if (packet.Length == 70)
+			{
+				DiscoverIp(packet);
+			}
+		}
+		catch (Exception e)
+		{
+			Debug.LogError($"Error while processing UDP Packet: {e}");
+		}
+	}
+
+	private void DiscoverIp(byte[] packet)
+	{
+		string ip = Encoding.UTF8.GetString(packet, 4, 70 - 6).TrimEnd('\0');
+		int port = (packet[69] << 8) | packet[68];
+		Debug.Log($"IP Discovered: {ip}:{port}");
+		
+		var payload = new GatewayPayload
+		{
+			OpCode = GatewayOpCode.Voice_SelectProtocol,
+			Data = new SelectProtocolRequest
+			{
+				protocol = "udp",
+				data = new ProtocolData
+				{
+					address = ip,
+					port = port,
+					mode = udpClient.Mode
+				}
+			}
+		};
+		voiceGateway.Send(payload);
 	}
 
 	private void OnSessionDescription(SessionDesciptionResponse e)
 	{
 		udpClient.SecretKey = e.secret_key;
-		ToggleSpeaking(true);
 	}
 
 	private void ToggleSpeaking(bool speaking)
@@ -60,22 +99,6 @@ public class DiscordVoiceClient : IDisposable
 		//Initialize UDP
 		udpClient = new VoiceUdpClient(e.ip, e.port, e.ssrc);
 		udpClient.Start();
-		//Select protocol
-		var payload = new GatewayPayload
-		{
-			OpCode = GatewayOpCode.Voice_SelectProtocol,
-			Data = new SelectProtocolRequest
-			{
-				protocol = "udp",
-				data = new ProtocolData
-				{
-					address = "127.0.0.1",
-					port = udpClient.LocalPort,
-					mode = udpClient.Mode
-				}
-			}
-		};
-		voiceGateway.Send(payload);
 	}
 	
 	//TODO: Handle Resume:

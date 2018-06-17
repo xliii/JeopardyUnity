@@ -18,5 +18,6 @@
         public const string HeartbeatACK = "Discord.Voice.HeartbeatACK";
         public const string SessionDesciption = "Discord.Voice.SessionDescription";
         public const string Speaking = "Discord.Voice.Speaking";
+        public const string Packet = "Discord.Voice.Packet";
     }
 }
