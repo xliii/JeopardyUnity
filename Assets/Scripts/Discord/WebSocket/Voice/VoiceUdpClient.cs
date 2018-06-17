@@ -65,11 +65,11 @@ public class VoiceUdpClient : IDisposable
         Send(packet);
     }
 
-    private void Send(byte[] data)
+    public void Send(byte[] packet)
     {
         try
         {  
-            _client.Send(data, data.Length);
+            _client.Send(packet, packet.Length);
         }
         catch (Exception e)
         {
@@ -91,6 +91,7 @@ public class VoiceUdpClient : IDisposable
             catch (ThreadAbortException)
             {
                 Debug.Log("UDP Receiver closed");
+                break;
             }
             catch (Exception e)
             {
