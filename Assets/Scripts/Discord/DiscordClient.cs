@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Net;
 using UnityEngine;
+using UnityParseHelpers;
 
 namespace Discord
 {
@@ -18,6 +19,8 @@ namespace Discord
 
         public event EventHandler<MessageCreateEventData> OnMessage;
 
+        public event EventHandler<SessionDesciptionResponse> OnVoiceReady;
+
         protected DiscordClient()
         {            
             //Initialization
@@ -28,6 +31,9 @@ namespace Discord
             //Public
             Messenger.AddListener<ReadyEventData>(DiscordEvent.Ready, e => OnReady.Invoke(this, e));
             Messenger.AddListener<MessageCreateEventData>(DiscordEvent.MessageCreate, e => OnMessage.Invoke(this, e));
+
+            //Initialize Loom from main thread
+            Loom.Instance.Clear();
         }
 
         private void OnReadyUser(object sender, ReadyEventData e)
@@ -44,7 +50,13 @@ namespace Discord
         {            
             if (userId == null) throw new Exception("Client not ready");
             voiceClient = new DiscordVoiceClient(userId, gateway);
+            voiceClient.OnVoiceReady += OnVoiceReadyInternal;
             voiceClient.JoinVoice(guildId, channelId);
+        }
+
+        private void OnVoiceReadyInternal(object sender, SessionDesciptionResponse e)
+        {
+            Loom.Instance.QueueOnMainThread(() => OnVoiceReady.Invoke(sender, e));
         }
 
         private void OnInitialHeartbeatACK()
@@ -98,6 +110,11 @@ namespace Discord
         {
             heartbeatService = new HeartbeatService(gateway, e.heartbeat_interval);
             heartbeatService.Start();
+        }
+
+        public void SendVoice(AudioClip audioClip)
+        {
+            voiceClient.SendVoice(audioClip);
         }
     }
 }

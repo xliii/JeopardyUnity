@@ -38,8 +38,9 @@ public class VoiceUdpClient : IDisposable
     /// <para/>
     /// <a href="https://github.com/tabrath/libsodium-core">Libdodium .NET Standard 2.0</a>
     /// </summary>
-    public void SendVoice()
+    public void SendVoice(AudioClip clip)
     {
+        Debug.Log($"Send Voice: {clip.name} Samples: {clip.samples}");
         
     }
 

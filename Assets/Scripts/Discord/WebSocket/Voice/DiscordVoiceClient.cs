@@ -18,6 +18,8 @@ public class DiscordVoiceClient : IDisposable
 
 	private VoiceUdpClient udpClient;
 
+	public event EventHandler<SessionDesciptionResponse> OnVoiceReady;
+
 	public DiscordVoiceClient(string userId, DiscordGatewayClient gateway)
 	{
 		this.gateway = gateway;
@@ -74,6 +76,7 @@ public class DiscordVoiceClient : IDisposable
 	private void OnSessionDescription(SessionDesciptionResponse e)
 	{
 		udpClient.SecretKey = e.secret_key;
+		OnVoiceReady.Invoke(this, e);
 	}
 
 	private void ToggleSpeaking(bool speaking)
@@ -161,7 +164,6 @@ public class DiscordVoiceClient : IDisposable
 	{
 		if (token == null || guildId == null || endpoint == null || sessionId == null)
 		{
-			Debug.LogWarning("Not enough data to establish voice connection");
 			return;
 		}
 		
@@ -173,5 +175,10 @@ public class DiscordVoiceClient : IDisposable
 		voiceGateway.Dispose();
 		heartbeatService.Dispose();
 		udpClient.Dispose();
+	}
+
+	public void SendVoice(AudioClip audioClip)
+	{
+		udpClient.SendVoice(audioClip);
 	}
 }

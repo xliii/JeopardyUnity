@@ -1,6 +1,7 @@
 ﻿using Discord;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityParseHelpers;
 
 public class DiscordTest : MonoBehaviour
 {
@@ -9,13 +10,31 @@ public class DiscordTest : MonoBehaviour
 	public DiscordBotConfig config;
 
 	private DiscordClient client;
+
+	public AudioClip audioClip;
+
+	public Button sendButton;
 	
 	// Use this for initialization
-	void Start () {
+	void Start ()
+	{
+		sendButton.interactable = false;
+		
 		client = new DiscordBotClient(config);
 		client.OnReady += OnReady;
 		client.OnMessage += OnMessage;
+		client.OnVoiceReady += OnVoiceReady;
 		client.Connect();
+	}
+
+	public void SendVoice()
+	{
+		client.SendVoice(audioClip);
+	}
+
+	private void OnVoiceReady(object sender, SessionDesciptionResponse e)
+	{
+		sendButton.interactable = true;
 	}
 
 	private void OnMessage(object sender, MessageCreateEventData e)
