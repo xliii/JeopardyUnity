@@ -106,10 +106,10 @@ namespace Discord
 
         public void Dispose()
         {
-            gateway.Dispose();
-            voiceClient.Dispose();
-            heartbeatService.Dispose();
-            _cancellationTokenSource.Cancel();
+            gateway?.Dispose();
+            voiceClient?.Dispose();
+            heartbeatService?.Dispose();
+            _cancellationTokenSource?.Cancel();
         }
 
         private void OnHello(HelloEventData e)
@@ -117,13 +117,6 @@ namespace Discord
             heartbeatService = new HeartbeatService(gateway, e.heartbeat_interval);
             heartbeatService.Start();
         }
-
-        public void SendVoice(AudioClip audioClip)
-        {
-            voiceClient.SendVoice(audioClip);
-        }
-        
-        
     }
 }
 

@@ -198,19 +198,12 @@ public class DiscordVoiceClient : IDisposable
 		udpClient?.Dispose();
 	}
 
-	public void SendVoice(AudioClip audioClip)
-	{
-		udpClient.SendVoice(audioClip);
-	}
-	
 	private AudioOutStream CreateStream(AudioApplication application, int? bitrate = null, int bufferMillis = 1000, int packetLoss = 30)
 	{
-		_cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(_cancellationToken, new CancellationToken());
-		
 		var outputStream = new OutputStream(udpClient); //Ignores header
 		var sodiumEncrypter = new SodiumEncryptStream(outputStream, this); //Passes header
 		var rtpWriter = new RTPWriteStream(sodiumEncrypter, udpClient.ssrc); //Consumes header, passes
-		var bufferedStream = new BufferedWriteStream(rtpWriter, this, bufferMillis, _cancellationTokenSource.Token); //Ignores header, generates header
+		var bufferedStream = new BufferedWriteStream(rtpWriter, this, bufferMillis, _cancellationToken); //Ignores header, generates header
 		return new OpusEncodeStream(bufferedStream, bitrate ?? (96 * 1024), application, packetLoss); //Generates header
 	}
 
@@ -230,17 +223,20 @@ public class DiscordVoiceClient : IDisposable
 		
 		using (ffmpegProcess = CreateFFmpeg(song.Filepath))
 		{
-			using (audioStream = CreateStream(AudioApplication.Music))
+			if (audioStream == null)
 			{
-				try
-				{
-					await ffmpegProcess.StandardOutput.BaseStream.CopyToAsync(audioStream);
-				}
-				finally
-				{
-					await audioStream.FlushAsync();
-				}		
+				audioStream = CreateStream(AudioApplication.Music);
 			}
+			
+			try
+			{
+				_cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(_cancellationToken, new CancellationToken());
+				await ffmpegProcess.StandardOutput.BaseStream.CopyToAsync(audioStream, 81920, _cancellationTokenSource.Token);
+			}
+			finally
+			{
+				await audioStream.FlushAsync();
+			}	
 		}
 	}
 
@@ -250,17 +246,19 @@ public class DiscordVoiceClient : IDisposable
 		{
 			Debug.Log("STOP");
 			_cancellationTokenSource?.Cancel();
+			if (audioStream != null)
+			{
+				//audioStream.ClearAsync(CancellationToken.None);
+			}
 
-			audioStream?.Close();
-			audioStream?.Dispose();		
-
-			ffmpegProcess?.Kill();
-			ffmpegProcess?.Close();
-			ffmpegProcess?.Dispose();	
+			if (ffmpegProcess != null && !ffmpegProcess.HasExited)
+			{
+				ffmpegProcess.Kill();
+				ffmpegProcess.Dispose();
+			}
 		}
 		finally
 		{
-			audioStream = null;
 			ffmpegProcess = null;
 			ToggleSpeaking(false);
 		}

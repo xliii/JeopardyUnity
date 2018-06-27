@@ -27,11 +27,6 @@ public class VoiceUdpClient : IDisposable
         this.ssrc = ssrc;
     }
 
-    public void SendVoice(AudioClip clip)
-    {
-        Debug.Log($"Send Voice: {clip.name} Samples: {clip.samples}");         
-    }
-
     public void Start()
     {
         _client.Connect(_endpoint);
@@ -68,7 +63,7 @@ public class VoiceUdpClient : IDisposable
     {
         try
         {
-            logOutgoing(packet);
+            //logOutgoing(packet);
             return await _client.SendAsync(packet, bytes);
         }
         catch (Exception e)

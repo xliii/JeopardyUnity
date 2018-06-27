@@ -91,7 +91,7 @@ public class BufferedWriteStream : AudioOutStream
                                 timestamp += OpusEncoder.FrameSamplesPerChannel;
                                 _silenceFrames = 0;
 #if DEBUG
-                                Debug.Log($"Sent {frame.Bytes} bytes ({_queuedFrames.Count} frames buffered)");
+                                //Debug.Log($"Sent {frame.Bytes} bytes ({_queuedFrames.Count} frames buffered)");
 #endif
                             }
                             else
@@ -106,15 +106,13 @@ public class BufferedWriteStream : AudioOutStream
                                     else
                                     {
                                         _client.ToggleSpeaking(false);
-                                        //TODO: Handle finish
-                                        _cancelTokenSource.Cancel();
                                     }
                                     nextTick += _ticksPerFrame;
                                     seq++;
                                     timestamp += OpusEncoder.FrameSamplesPerChannel;
                                 }
 #if DEBUG
-                                Debug.Log($"Buffer underrun");
+                                //Debug.Log($"Buffer underrun");
 #endif
                             }
                         }
