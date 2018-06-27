@@ -27,18 +27,6 @@ public class VoiceUdpClient : IDisposable
         this.ssrc = ssrc;
     }
 
-    //TODO: Receiving voice
-    //TODO: Sending voice 
-
-    /// <summary>
-    /// <a href="https://discordapp.com/developers/docs/topics/voice-connections#encrypting-and-sending-voice">Encrypting and sending voice</a>
-    /// <para/>
-    /// <a href="https://github.com/DevJohnC/Opus.NET">Opus Codec</a>
-    /// <para/>
-    /// <a href="https://github.com/adamcaudill/libsodium-net">Libsodium .NET</a>
-    /// <para/>
-    /// <a href="https://github.com/tabrath/libsodium-core">Libdodium .NET Standard 2.0</a>
-    /// </summary>
     public void SendVoice(AudioClip clip)
     {
         Debug.Log($"Send Voice: {clip.name} Samples: {clip.samples}");         
@@ -80,7 +68,7 @@ public class VoiceUdpClient : IDisposable
     {
         try
         {
-            logOutgoing(packet);
+            //logOutgoing(packet);
             return await _client.SendAsync(packet, bytes);
         }
         catch (Exception e)
@@ -94,7 +82,7 @@ public class VoiceUdpClient : IDisposable
     {
         try
         {
-            logOutgoing(packet);
+            //logOutgoing(packet);
             _client.Send(packet, bytes);
         }
         catch (Exception e)

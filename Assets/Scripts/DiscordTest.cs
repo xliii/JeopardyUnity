@@ -71,26 +71,6 @@ public class DiscordTest : MonoBehaviour
 		}
 	}
 
-	private async Task DirectPCM(string path)
-	{
-		using (var ffmpeg = CreateFFmpeg(path))
-		{
-			using (var stream = client.CreateDirectPCMStream(AudioApplication.Music))
-			{
-				try
-				{
-					client.voiceClient.ToggleSpeaking(true);
-					await ffmpeg.StandardOutput.BaseStream.CopyToAsync(stream);
-				}
-				finally
-				{
-					await stream.FlushAsync();
-					client.voiceClient.ToggleSpeaking(false);
-				}		
-			}
-		}
-	}
-
 	private Process CreateFFmpeg(string path)
 	{
 		return Process.Start(new ProcessStartInfo
