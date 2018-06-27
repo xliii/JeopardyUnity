@@ -3,7 +3,7 @@ using System.Collections;
 using System.IO;
 using UnityEngine;
 
-public abstract class Song : ScriptableObject
+public abstract class Song : Question
 {
 	public string Artist;
 	public string Name;
@@ -23,8 +23,7 @@ public abstract class Song : ScriptableObject
 		callback(www.GetAudioClip(false, false));
 	}
 
-	//TODO: Expose Application.dataPath globally
-	public string Filepath => $"E:/Dev/JeopardyUnity/Assets/Music/{FullName}.wav";
+	public string Filepath => $"{UnityUtils.ApplicationDataPath}/Music/{FullName}.wav";
 
 	public string FullName => string.IsNullOrEmpty(Artist) ? Name : $"{Artist} - {Name}";
 

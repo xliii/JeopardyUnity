@@ -217,7 +217,7 @@ public class DiscordVoiceClient : IDisposable
 		Debug.Log("PLAY");
 		if (!File.Exists(song.Filepath))
 		{
-			Debug.LogError("AudioFile not found");
+			Debug.LogError($"AudioFile not found {song.Filepath}");
 			return;
 		}
 		
@@ -269,7 +269,7 @@ public class DiscordVoiceClient : IDisposable
 		//TODO: Expose Application.dataPath globally
 		return Process.Start(new ProcessStartInfo
 		{
-			FileName = "E:/Dev/JeopardyUnity/Assets/ffmpeg/ffmpeg.exe",
+			FileName = $"{UnityUtils.ApplicationDataPath}/ffmpeg/ffmpeg.exe",
 			Arguments = $"-hide_banner -loglevel panic -i \"{path}\" -ac 2 -f s16le -ar 48000 pipe:1",
 			UseShellExecute = false,
 			RedirectStandardOutput = true,
