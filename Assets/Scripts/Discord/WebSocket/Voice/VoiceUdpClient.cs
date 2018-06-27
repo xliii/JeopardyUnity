@@ -68,7 +68,7 @@ public class VoiceUdpClient : IDisposable
     {
         try
         {
-            //logOutgoing(packet);
+            logOutgoing(packet);
             return await _client.SendAsync(packet, bytes);
         }
         catch (Exception e)

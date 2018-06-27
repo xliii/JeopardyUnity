@@ -1,6 +1,12 @@
 ﻿using System;
+using System.Diagnostics;
+using System.IO;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using UnityEngine;
+using UnityParseHelpers;
+using Debug = UnityEngine.Debug;
 
 public class DiscordVoiceClient : IDisposable
 {
@@ -16,12 +22,23 @@ public class DiscordVoiceClient : IDisposable
 
 	private IHeartbeatService heartbeatService;
 
-	public VoiceUdpClient udpClient { get; private set; }
+	private VoiceUdpClient udpClient;
+
+	public byte[] SecretKey => udpClient.SecretKey;
 
 	public event EventHandler<SessionDesciptionResponse> OnVoiceReady;
 
-	public DiscordVoiceClient(string userId, DiscordGatewayClient gateway)
+	private CancellationToken _cancellationToken;
+	private CancellationTokenSource _cancellationTokenSource;
+
+	private bool speaking = false;
+
+	private Process ffmpegProcess;
+	private AudioOutStream audioStream;
+	
+	public DiscordVoiceClient(string userId, DiscordGatewayClient gateway, CancellationToken cancellationToken)
 	{
+		_cancellationToken = cancellationToken;
 		this.gateway = gateway;
 		this.userId = userId;
 		
@@ -81,6 +98,10 @@ public class DiscordVoiceClient : IDisposable
 
 	public void ToggleSpeaking(bool speaking)
 	{
+		if (this.speaking == speaking) return;
+
+		this.speaking = speaking;
+		
 		var payload = new GatewayPayload
 		{
 			OpCode = GatewayOpCode.Voice_Speaking,
@@ -180,5 +201,76 @@ public class DiscordVoiceClient : IDisposable
 	public void SendVoice(AudioClip audioClip)
 	{
 		udpClient.SendVoice(audioClip);
+	}
+	
+	private AudioOutStream CreateStream(AudioApplication application, int? bitrate = null, int bufferMillis = 1000, int packetLoss = 30)
+	{
+		_cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(_cancellationToken, new CancellationToken());
+		
+		var outputStream = new OutputStream(udpClient); //Ignores header
+		var sodiumEncrypter = new SodiumEncryptStream(outputStream, this); //Passes header
+		var rtpWriter = new RTPWriteStream(sodiumEncrypter, udpClient.ssrc); //Consumes header, passes
+		var bufferedStream = new BufferedWriteStream(rtpWriter, this, bufferMillis, _cancellationTokenSource.Token); //Ignores header, generates header
+		return new OpusEncodeStream(bufferedStream, bitrate ?? (96 * 1024), application, packetLoss); //Generates header
+	}
+
+	public void Play(Song song)
+	{
+		Loom.Instance.RunAsync(() => { PlayAsync(song); });
+	}
+
+	public async Task PlayAsync(Song song)
+	{
+		Debug.Log("PLAY");
+		if (!File.Exists(song.Filepath))
+		{
+			Debug.LogError("AudioFile not found");
+			return;
+		}
+		
+		using (ffmpegProcess = CreateFFmpeg(song.Filepath))
+		{
+			using (audioStream = CreateStream(AudioApplication.Music))
+			{
+				try
+				{
+					await ffmpegProcess.StandardOutput.BaseStream.CopyToAsync(audioStream);
+				}
+				finally
+				{
+					await audioStream.FlushAsync();
+				}		
+			}
+		}
+	}
+
+	public void Stop()
+	{
+		Debug.Log("STOP");
+		_cancellationTokenSource?.Cancel();
+		
+		audioStream?.Close();
+		audioStream?.Dispose();
+		audioStream = null;
+		
+		ffmpegProcess?.Kill();
+		ffmpegProcess?.Close();
+		ffmpegProcess?.Dispose();
+		ffmpegProcess = null;
+		
+		ToggleSpeaking(false);
+	}
+	
+	private Process CreateFFmpeg(string path)
+	{
+		//TODO: Expose Application.dataPath globally
+		return Process.Start(new ProcessStartInfo
+		{
+			FileName = "E:/Dev/JeopardyUnity/Assets/ffmpeg/ffmpeg.exe",
+			Arguments = $"-hide_banner -loglevel panic -i \"{path}\" -ac 2 -f s16le -ar 48000 pipe:1",
+			UseShellExecute = false,
+			RedirectStandardOutput = true,
+			CreateNoWindow = true
+		});
 	}
 }

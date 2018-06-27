@@ -45,7 +45,7 @@ public class SodiumEncryptStream : AudioOutStream
             await _next.WriteAsync(buffer, 0, count + 12, cancelToken).ConfigureAwait(false);
         }
 
-        private byte[] SecretKey => _client.udpClient.SecretKey;
+        private byte[] SecretKey => _client.SecretKey;
 
         public override async Task FlushAsync(CancellationToken cancelToken)
         {

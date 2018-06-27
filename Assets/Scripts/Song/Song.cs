@@ -23,7 +23,8 @@ public abstract class Song : ScriptableObject
 		callback(www.GetAudioClip(false, false));
 	}
 
-	protected string Filepath => $"{Application.dataPath}/Music/{FullName}.wav";
+	//TODO: Expose Application.dataPath globally
+	public string Filepath => $"E:/Dev/JeopardyUnity/Assets/Music/{FullName}.wav";
 
 	public string FullName => string.IsNullOrEmpty(Artist) ? Name : $"{Artist} - {Name}";
 

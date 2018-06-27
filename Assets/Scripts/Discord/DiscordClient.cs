@@ -54,7 +54,7 @@ namespace Discord
         public void JoinVoice(string guildId, string channelId)
         {            
             if (userId == null) throw new Exception("Client not ready");
-            voiceClient = new DiscordVoiceClient(userId, gateway);
+            voiceClient = new DiscordVoiceClient(userId, gateway, _cancellationTokenSource.Token);
             voiceClient.OnVoiceReady += OnVoiceReadyInternal;
             voiceClient.JoinVoice(guildId, channelId);
         }
@@ -123,14 +123,7 @@ namespace Discord
             voiceClient.SendVoice(audioClip);
         }
         
-        public AudioOutStream CreatePCMStream(AudioApplication application, int? bitrate = null, int bufferMillis = 1000, int packetLoss = 30)        
-        {
-            var outputStream = new OutputStream(voiceClient.udpClient); //Ignores header
-            var sodiumEncrypter = new SodiumEncryptStream(outputStream, voiceClient); //Passes header
-            var rtpWriter = new RTPWriteStream(sodiumEncrypter, voiceClient.udpClient.ssrc); //Consumes header, passes
-            var bufferedStream = new BufferedWriteStream(rtpWriter, voiceClient, bufferMillis, _cancellationTokenSource.Token); //Ignores header, generates header
-            return new OpusEncodeStream(bufferedStream, bitrate ?? (96 * 1024), application, packetLoss); //Generates header
-        }
+        
     }
 }
 

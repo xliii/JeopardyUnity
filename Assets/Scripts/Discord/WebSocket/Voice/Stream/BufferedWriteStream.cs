@@ -91,7 +91,7 @@ public class BufferedWriteStream : AudioOutStream
                                 timestamp += OpusEncoder.FrameSamplesPerChannel;
                                 _silenceFrames = 0;
 #if DEBUG
-                                //Debug.Log($"Sent {frame.Bytes} bytes ({_queuedFrames.Count} frames buffered)");
+                                Debug.Log($"Sent {frame.Bytes} bytes ({_queuedFrames.Count} frames buffered)");
 #endif
                             }
                             else

@@ -1,11 +1,6 @@
-﻿using System.Diagnostics;
-using System.IO;
-using System.Threading.Tasks;
-using Discord;
+﻿using Discord;
 using UnityEngine;
 using UnityEngine.UI;
-using UnityParseHelpers;
-using Debug = UnityEngine.Debug;
 
 public class DiscordTest : MonoBehaviour
 {
@@ -14,12 +9,10 @@ public class DiscordTest : MonoBehaviour
 	public DiscordBotConfig config;
 
 	private DiscordClient client;
-
-	public AudioClip audioClip;
-
+	
 	public Button sendButton;
 
-	private string appDataPath;
+	public Song song;
 	
 	// Use this for initialization
 	void Start ()
@@ -31,56 +24,16 @@ public class DiscordTest : MonoBehaviour
 		client.OnMessage += OnMessage;
 		client.OnVoiceReady += OnVoiceReady;
 		client.Connect();
-		appDataPath = Application.dataPath;
 	}
 
-	public void SendVoice()
+	public void Play()
 	{
-		Loom.Instance.RunAsync(SendVoiceAsync);
+		client.voiceClient.Play(song);
 	}
 
-	public async void SendVoiceAsync()
+	public void Stop()
 	{
-		string path = $"{appDataPath}/Music/Never gonna give you up.wav";
-		if (!File.Exists(path))
-		{
-			Debug.LogError("AudioFile not found");
-			return;
-		}
-		
-		Debug.Log("Found audio file");
-
-		await PCM(path);
-	}
-	
-	private async Task PCM(string path)
-	{
-		using (var ffmpeg = CreateFFmpeg(path))
-		{
-			using (var stream = client.CreatePCMStream(AudioApplication.Music))
-			{
-				try
-				{
-					await ffmpeg.StandardOutput.BaseStream.CopyToAsync(stream);
-				}
-				finally
-				{
-					await stream.FlushAsync();
-				}		
-			}
-		}
-	}
-
-	private Process CreateFFmpeg(string path)
-	{
-		return Process.Start(new ProcessStartInfo
-		{
-			FileName = $"{appDataPath}/ffmpeg/ffmpeg.exe",
-			Arguments = $"-hide_banner -loglevel panic -i \"{path}\" -ac 2 -f s16le -ar 48000 pipe:1",
-			UseShellExecute = false,
-			RedirectStandardOutput = true,
-			CreateNoWindow = true
-		});
+		client.voiceClient.Stop();
 	}
 
 	private void OnVoiceReady(object sender, SessionDesciptionResponse e)
