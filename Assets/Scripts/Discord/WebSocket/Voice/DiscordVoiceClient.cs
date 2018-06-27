@@ -246,19 +246,24 @@ public class DiscordVoiceClient : IDisposable
 
 	public void Stop()
 	{
-		Debug.Log("STOP");
-		_cancellationTokenSource?.Cancel();
-		
-		audioStream?.Close();
-		audioStream?.Dispose();
-		audioStream = null;
-		
-		ffmpegProcess?.Kill();
-		ffmpegProcess?.Close();
-		ffmpegProcess?.Dispose();
-		ffmpegProcess = null;
-		
-		ToggleSpeaking(false);
+		try
+		{
+			Debug.Log("STOP");
+			_cancellationTokenSource?.Cancel();
+
+			audioStream?.Close();
+			audioStream?.Dispose();		
+
+			ffmpegProcess?.Kill();
+			ffmpegProcess?.Close();
+			ffmpegProcess?.Dispose();	
+		}
+		finally
+		{
+			audioStream = null;
+			ffmpegProcess = null;
+			ToggleSpeaking(false);
+		}
 	}
 	
 	private Process CreateFFmpeg(string path)

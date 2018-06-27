@@ -1,6 +1,6 @@
 ﻿using System.IO;
-//using MediaToolkit;
-//using MediaToolkit.Model;
+using MediaToolkit;
+using MediaToolkit.Model;
 using UnityEngine;
 using VideoLibrary;
 
@@ -16,7 +16,7 @@ public class YoutubeSong : Song
 	
 	protected override void Resolve()
 	{
-		/*var youtube = YouTube.Default;
+		var youtube = YouTube.Default;
 		var vid = youtube.GetVideo(YOUTUBE_PREFIX + YoutubeId);
 		
 		File.WriteAllBytes(TempFilepath, vid.GetBytes());
@@ -30,7 +30,7 @@ public class YoutubeSong : Song
 			engine.Convert(inputFile, outputFile);
 		}
 		
-		File.Delete(TempFilepath);*/
+		File.Delete(TempFilepath);
 	}
 	
 	private string TempFilepath => $"{Application.dataPath}/Temp/{FullName}.mp4";

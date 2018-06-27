@@ -1,6 +1,7 @@
 ﻿using Discord;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityParseHelpers;
 
 public class DiscordTest : MonoBehaviour
 {
@@ -9,16 +10,13 @@ public class DiscordTest : MonoBehaviour
 	public DiscordBotConfig config;
 
 	private DiscordClient client;
-	
-	public Button sendButton;
 
 	public Song song;
 	
 	// Use this for initialization
 	void Start ()
 	{
-		sendButton.interactable = false;
-		
+
 		client = new DiscordBotClient(config);
 		client.OnReady += OnReady;
 		client.OnMessage += OnMessage;
@@ -31,6 +29,11 @@ public class DiscordTest : MonoBehaviour
 		client.voiceClient.Play(song);
 	}
 
+	public void Play(Song song)
+	{
+		client.voiceClient.Play(song);
+	}
+
 	public void Stop()
 	{
 		client.voiceClient.Stop();
@@ -38,7 +41,10 @@ public class DiscordTest : MonoBehaviour
 
 	private void OnVoiceReady(object sender, SessionDesciptionResponse e)
 	{
-		sendButton.interactable = true;
+		foreach (var button in FindObjectsOfType<Button>())
+		{
+			button.interactable = true;
+		}
 	}
 
 	private void OnMessage(object sender, MessageCreateEventData e)
