@@ -16,7 +16,7 @@ public class DiscordVoiceClient : IDisposable
 
 	private IHeartbeatService heartbeatService;
 
-	private VoiceUdpClient udpClient;
+	public VoiceUdpClient udpClient { get; private set; }
 
 	public event EventHandler<SessionDesciptionResponse> OnVoiceReady;
 
@@ -79,7 +79,7 @@ public class DiscordVoiceClient : IDisposable
 		OnVoiceReady.Invoke(this, e);
 	}
 
-	private void ToggleSpeaking(bool speaking)
+	public void ToggleSpeaking(bool speaking)
 	{
 		var payload = new GatewayPayload
 		{
@@ -101,6 +101,7 @@ public class DiscordVoiceClient : IDisposable
 		heartbeatService.Start();
 		//Initialize UDP
 		udpClient = new VoiceUdpClient(e.ip, e.port, e.ssrc);
+		Debug.Log("SSRC: " + e.ssrc);
 		udpClient.Start();
 	}
 	

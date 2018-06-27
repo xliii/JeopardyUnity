@@ -2,5 +2,5 @@
 {
     public bool speaking;
     public int delay;
-    public int ssrc;
+    public uint ssrc;
 }

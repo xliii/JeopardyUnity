@@ -13,12 +13,12 @@ public class VoiceUdpClient : IDisposable
     private IPEndPoint _endpoint;
     private readonly UdpClient _client;
 
-    public int ssrc { get; }
+    public uint ssrc { get; }
 
-    public readonly int LocalPort = 1337;
+    public readonly int LocalPort = 1338;
     public byte[] SecretKey;
 
-    public VoiceUdpClient(string hostname, int port, int ssrc)
+    public VoiceUdpClient(string hostname, int port, uint ssrc)
     {
         _receiveThread = new Thread(Receive) {IsBackground = true};
         _endpoint = new IPEndPoint(IPAddress.Parse(hostname), port);
@@ -40,8 +40,7 @@ public class VoiceUdpClient : IDisposable
     /// </summary>
     public void SendVoice(AudioClip clip)
     {
-        Debug.Log($"Send Voice: {clip.name} Samples: {clip.samples}");
-        
+        Debug.Log($"Send Voice: {clip.name} Samples: {clip.samples}");         
     }
 
     public void Start()
@@ -68,15 +67,19 @@ public class VoiceUdpClient : IDisposable
 
     public void Send(byte[] packet)
     {
+        Send(packet, 0, packet.Length);
+    }
+
+    public void Send(byte[] packet, int offset, int count)
+    {
         try
-        {  
-            _client.Send(packet, packet.Length);
+        {            
+            _client.Send(packet, count);
         }
         catch (Exception e)
         {
             Debug.LogError($"UDP send exception: {e}");
         }
-       
     }
 
     private void Receive()

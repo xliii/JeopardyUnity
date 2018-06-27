@@ -1,7 +1,9 @@
-﻿using Discord;
+﻿using System.Diagnostics;
+using System.IO;
+using Discord;
 using UnityEngine;
 using UnityEngine.UI;
-using UnityParseHelpers;
+using Debug = UnityEngine.Debug;
 
 public class DiscordTest : MonoBehaviour
 {
@@ -29,7 +31,41 @@ public class DiscordTest : MonoBehaviour
 
 	public void SendVoice()
 	{
-		client.SendVoice(audioClip);
+		string path = $"{Application.dataPath}/Music/Test.wav";
+		if (!File.Exists(path))
+		{
+			Debug.LogError("AudioFile not found");
+			return;
+		}
+		
+		Debug.Log("Found audio file");
+		
+		using (var ffmpeg = CreateFFmpeg(path))
+		{
+			using (var stream = client.CreatePCMStream(AudioApplication.Music))
+			{
+				try
+				{
+					ffmpeg.StandardOutput.BaseStream.CopyTo(stream);
+				}
+				finally
+				{
+					stream.Flush();
+				}
+			}
+		}
+	}
+
+	private Process CreateFFmpeg(string path)
+	{
+		return Process.Start(new ProcessStartInfo
+		{
+			FileName = $"{Application.dataPath}/ffmpeg/ffmpeg.exe",
+			Arguments = $"-hide_banner -loglevel panic -i \"{path}\" -ac 2 -f s16le -ar 48000 pipe:1",
+			UseShellExecute = false,
+			RedirectStandardOutput = true,
+			CreateNoWindow = true
+		});
 	}
 
 	private void OnVoiceReady(object sender, SessionDesciptionResponse e)

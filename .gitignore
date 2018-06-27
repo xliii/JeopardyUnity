@@ -39,3 +39,9 @@ sysinfo.txt
 
 #Discord config
 Discord Config.asset*
+
+#ffmpeg
+
+/Assets/ffmpeg/
+/Assets/ffmpeg/*
+/Assets/ffmpeg.meta

@@ -643,7 +643,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   input: {fileID: 1036523610}
   config: {fileID: 11400000, guid: c64e6828d4fd8ad46980d24d96433218, type: 2}
-  audioClip: {fileID: 8300000, guid: d87163a5362bccf40b68cd0b53868067, type: 3}
+  audioClip: {fileID: 8300000, guid: e1762c87c0e3e504883eb2cc8dcbec82, type: 3}
   sendButton: {fileID: 529036064}
 --- !u!4 &1140122814
 Transform:

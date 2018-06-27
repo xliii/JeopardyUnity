@@ -2,7 +2,7 @@
 
 public class VoiceReadyResponse : IGatewayEventData
 {
-    public int ssrc;
+    public uint ssrc;
     public string ip;
     public int port;
     public List<string> modes;
