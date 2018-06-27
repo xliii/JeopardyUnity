@@ -2,6 +2,7 @@
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
+using System.Threading.Tasks;
 using UnityEngine;
 
 public class VoiceUdpClient : IDisposable
@@ -70,11 +71,31 @@ public class VoiceUdpClient : IDisposable
         Send(packet, 0, packet.Length);
     }
 
-    public void Send(byte[] packet, int offset, int count)
+    public async Task<int> SendAsync(byte[] packet)
+    {
+        return await SendAsync(packet, 0, packet.Length);
+    }
+
+    public async Task<int> SendAsync(byte[] packet, int offset, int bytes)
     {
         try
-        {            
-            _client.Send(packet, count);
+        {
+            logOutgoing(packet);
+            return await _client.SendAsync(packet, bytes);
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"UDP send exception: {e}");
+            return 0;
+        }
+    }
+
+    public void Send(byte[] packet, int offset, int bytes)
+    {
+        try
+        {
+            logOutgoing(packet);
+            _client.Send(packet, bytes);
         }
         catch (Exception e)
         {
@@ -89,7 +110,7 @@ public class VoiceUdpClient : IDisposable
             try
             {
                 byte[] packet = _client.Receive(ref _endpoint);             
-                logUDP(packet);
+                //logIncoming(packet);
                 Messenger.Broadcast(DiscordEvent.Voice.Packet, packet);
             }
             catch (ThreadAbortException)
@@ -104,9 +125,19 @@ public class VoiceUdpClient : IDisposable
         }
     }
 
-    private void logUDP(byte[] packet)
+    private void logIncoming(byte[] packet)
     {
-        Debug.Log($"UDP < {string.Join(", ", packet)}");
+        log(packet, "<<");
+    }
+
+    private void logOutgoing(byte[] packet)
+    {
+        log(packet, ">>");
+    }
+
+    private void log(byte[] packet, string type)
+    {
+        Debug.Log($"UDP {type} ({packet.Length}) {string.Join(", ", packet)}");
     }
 
     public void Dispose()

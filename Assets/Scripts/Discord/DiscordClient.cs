@@ -5,6 +5,7 @@ using System.Net;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
+using unity.libsodium;
 using UnityEngine;
 using UnityParseHelpers;
 
@@ -16,7 +17,7 @@ namespace Discord
         
         private DiscordGatewayClient gateway;
 
-        private DiscordVoiceClient voiceClient;
+        public DiscordVoiceClient voiceClient;
 
         private string userId;
 
@@ -27,6 +28,8 @@ namespace Discord
         public event EventHandler<SessionDesciptionResponse> OnVoiceReady;
         
         public const int MaxBitrate = 128 * 1024;
+        
+        private CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
 
         protected DiscordClient()
         {            
@@ -111,6 +114,7 @@ namespace Discord
             gateway.Dispose();
             voiceClient.Dispose();
             heartbeatService.Dispose();
+            _cancellationTokenSource.Cancel();
         }
 
         private void OnHello(HelloEventData e)
@@ -129,8 +133,16 @@ namespace Discord
             var outputStream = new OutputStream(voiceClient.udpClient); //Ignores header
             var sodiumEncrypter = new SodiumEncryptStream(outputStream, voiceClient); //Passes header
             var rtpWriter = new RTPWriteStream(sodiumEncrypter, voiceClient.udpClient.ssrc); //Consumes header, passes
-            var bufferedStream = new BufferedWriteStream(rtpWriter, voiceClient, bufferMillis, CancellationToken.None); //Ignores header, generates header
+            var bufferedStream = new BufferedWriteStream(rtpWriter, voiceClient, bufferMillis, _cancellationTokenSource.Token); //Ignores header, generates header
             return new OpusEncodeStream(bufferedStream, bitrate ?? (96 * 1024), application, packetLoss); //Generates header
+        }
+        
+        public AudioOutStream CreateDirectPCMStream(AudioApplication application, int? bitrate = null, int packetLoss = 30)
+        {
+            var outputStream = new OutputStream(voiceClient.udpClient); //Ignores header
+            var sodiumEncrypter = new SodiumEncryptStream(outputStream, voiceClient); //Passes header
+            var rtpWriter = new RTPWriteStream(sodiumEncrypter, voiceClient.udpClient.ssrc); //Consumes header, passes
+            return new OpusEncodeStream(rtpWriter, bitrate ?? (96 * 1024), application, packetLoss); //Generates header
         }
     }
 
@@ -153,6 +165,7 @@ namespace Discord
         }
         public override void Write(byte[] buffer, int offset, int count)
         {
+            //Debug.Log("AudioStream:Write");
             WriteAsync(buffer, offset, count, CancellationToken.None).GetAwaiter().GetResult();
         }
         public override void Flush()
@@ -199,9 +212,9 @@ namespace Discord
         public override void WriteHeader(ushort seq, uint timestamp, bool missed) { } //Ignore
         public override async Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancelToken)
         {
+            //Debug.Log("OutputStream:WriteAsync");
             cancelToken.ThrowIfCancellationRequested();
-            //await _client.SendAsync(buffer, offset, count).ConfigureAwait(false);
-            _client.Send(buffer, offset, count);
+            await _client.SendAsync(buffer, offset, count);
         }
     }
     
@@ -232,6 +245,7 @@ namespace Discord
         }
         public override async Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancelToken)
         {
+            //Debug.Log("SodiumEncryptStream:WriteAsync");
             cancelToken.ThrowIfCancellationRequested();
             if (!_hasHeader)
                 throw new InvalidOperationException("Received payload without an RTP header");
@@ -241,7 +255,7 @@ namespace Discord
                 return;
                 
             Buffer.BlockCopy(buffer, offset, _nonce, 0, 12); //Copy nonce from RTP header
-            TODO: count = SecretBox.Encrypt(buffer, offset + 12, count - 12, buffer, 12, _nonce, SecretKey);            
+            count = SecretBox.Encrypt(buffer, offset + 12, count - 12, buffer, 12, _nonce, SecretKey);            
             _next.WriteHeader(_nextSeq, _nextTimestamp, false);
             await _next.WriteAsync(buffer, 0, count + 12, cancelToken).ConfigureAwait(false);
         }
@@ -293,6 +307,7 @@ namespace Discord
         }
         public override async Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancelToken)
         {
+            //Debug.Log("RTPWriteStream:WriteAsync");
             cancelToken.ThrowIfCancellationRequested();
             if (!_hasHeader)
                 throw new InvalidOperationException("Received payload without an RTP header");
@@ -345,8 +360,7 @@ namespace Discord
         private readonly DiscordVoiceClient _client;
         private readonly AudioStream _next;
         private readonly CancellationTokenSource _cancelTokenSource;
-        private readonly CancellationToken _cancelToken;
-        private readonly Task _task;
+        private readonly CancellationToken _cancelToken;        
         private readonly ConcurrentQueue<Frame> _queuedFrames;
         private readonly ConcurrentQueue<byte[]> _bufferPool;
         private readonly SemaphoreSlim _queueLock;        
@@ -371,7 +385,7 @@ namespace Discord
             _queueLock = new SemaphoreSlim(_queueLength, _queueLength);
             _silenceFrames = MaxSilenceFrames;
 
-            _task = Run();
+            Run();
         }
         protected override void Dispose(bool disposing)
         {
@@ -426,6 +440,8 @@ namespace Discord
                                     else
                                     {
                                         _client.ToggleSpeaking(false);
+                                        //TODO: Handle finish
+                                        _cancelTokenSource.Cancel();
                                     }
                                     nextTick += _ticksPerFrame;
                                     seq++;
@@ -447,6 +463,7 @@ namespace Discord
         public override void WriteHeader(ushort seq, uint timestamp, bool missed) { } //Ignore, we use our own timing
         public override async Task WriteAsync(byte[] data, int offset, int count, CancellationToken cancelToken)
         {
+            //Debug.Log("BufferedWriteStream:WriteAsync");
             if (cancelToken.CanBeCanceled)
                 cancelToken = CancellationTokenSource.CreateLinkedTokenSource(cancelToken, _cancelToken).Token;
             else
@@ -517,13 +534,13 @@ namespace Discord
     
     internal unsafe class OpusEncoder : OpusConverter
     {
-        [DllImport("opus", EntryPoint = "opus_encoder_create", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport("opus_egpv", EntryPoint = "opus_encoder_create", CallingConvention = CallingConvention.Cdecl)]
         private static extern IntPtr CreateEncoder(int Fs, int channels, int application, out OpusError error);
-        [DllImport("opus", EntryPoint = "opus_encoder_destroy", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport("opus_egpv", EntryPoint = "opus_encoder_destroy", CallingConvention = CallingConvention.Cdecl)]
         private static extern void DestroyEncoder(IntPtr encoder);
-        [DllImport("opus", EntryPoint = "opus_encode", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport("opus_egpv", EntryPoint = "opus_encode", CallingConvention = CallingConvention.Cdecl)]
         private static extern int Encode(IntPtr st, byte* pcm, int frame_size, byte* data, int max_data_bytes);
-        [DllImport("opus", EntryPoint = "opus_encoder_ctl", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport("opus_egpv", EntryPoint = "opus_encoder_ctl", CallingConvention = CallingConvention.Cdecl)]
         private static extern OpusError EncoderCtl(IntPtr st, OpusCtl request, int value);
         
         public AudioApplication Application { get; }
@@ -558,7 +575,6 @@ namespace Discord
             }
 
             OpusError error;
-            //TODO: Fix Opus 64 bit DLL
             _ptr = CreateEncoder(SamplingRate, Channels, (int)opusApplication, out error);
             CheckError(error);
             CheckError(EncoderCtl(_ptr, OpusCtl.SetSignal, (int)opusSignal));
@@ -663,6 +679,7 @@ namespace Discord
 
         public override async Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancelToken)
         {
+            //Debug.Log("OpusEncodeStream:WriteAsync");
             //Assume threadsafe
             while (count > 0)
             {
@@ -734,33 +751,22 @@ namespace Discord
         }
     }
     
-    public unsafe static class SecretBox
+    public static unsafe class SecretBox
     {
-        [DllImport("libsodium", EntryPoint = "crypto_secretbox_easy", CallingConvention = CallingConvention.Cdecl)]
-        private static extern int SecretBoxEasy(byte* output, byte* input, long inputLength, byte[] nonce, byte[] secret);
-        [DllImport("libsodium", EntryPoint = "crypto_secretbox_open_easy", CallingConvention = CallingConvention.Cdecl)]
-        private static extern int SecretBoxOpenEasy(byte* output, byte* input, long inputLength, byte[] nonce, byte[] secret);
-
         public static int Encrypt(byte[] input, int inputOffset, int inputLength, byte[] output, int outputOffset, byte[] nonce, byte[] secret)
         {
             fixed (byte* inPtr = input)
             fixed (byte* outPtr = output)
             {
-                int error = SecretBoxEasy(outPtr + outputOffset, inPtr + inputOffset, inputLength, nonce, secret);
+                //Debug.Log($"Libsodium before: {string.Join(", ", output)}");             
+                int error = NativeLibsodium.crypto_secretbox_easy(outPtr + outputOffset, inPtr + inputOffset, inputLength, nonce, secret);
+                //Debug.Log($"Libsodium after: {error}, {string.Join(", ", output)}");
                 if (error != 0)
+                {
                     throw new Exception($"Sodium Error: {error}");
+                }
+
                 return inputLength + 16;
-            }
-        }
-        public static int Decrypt(byte[] input, int inputOffset, int inputLength, byte[] output, int outputOffset, byte[] nonce, byte[] secret)
-        {
-            fixed (byte* inPtr = input)
-            fixed (byte* outPtr = output)
-            {
-                int error = SecretBoxOpenEasy(outPtr + outputOffset, inPtr + inputOffset, inputLength, nonce, secret);
-                if (error != 0)
-                    throw new Exception($"Sodium Error: {error}");
-                return inputLength - 16;
             }
         }
     }

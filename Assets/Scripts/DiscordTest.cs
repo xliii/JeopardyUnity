@@ -1,8 +1,10 @@
 ﻿using System.Diagnostics;
 using System.IO;
+using System.Threading.Tasks;
 using Discord;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityParseHelpers;
 using Debug = UnityEngine.Debug;
 
 public class DiscordTest : MonoBehaviour
@@ -16,6 +18,8 @@ public class DiscordTest : MonoBehaviour
 	public AudioClip audioClip;
 
 	public Button sendButton;
+
+	private string appDataPath;
 	
 	// Use this for initialization
 	void Start ()
@@ -27,11 +31,17 @@ public class DiscordTest : MonoBehaviour
 		client.OnMessage += OnMessage;
 		client.OnVoiceReady += OnVoiceReady;
 		client.Connect();
+		appDataPath = Application.dataPath;
 	}
 
 	public void SendVoice()
 	{
-		string path = $"{Application.dataPath}/Music/Test.wav";
+		Loom.Instance.RunAsync(SendVoiceAsync);
+	}
+
+	public async void SendVoiceAsync()
+	{
+		string path = $"{appDataPath}/Music/Never gonna give you up.wav";
 		if (!File.Exists(path))
 		{
 			Debug.LogError("AudioFile not found");
@@ -39,19 +49,44 @@ public class DiscordTest : MonoBehaviour
 		}
 		
 		Debug.Log("Found audio file");
-		
+
+		await PCM(path);
+	}
+	
+	private async Task PCM(string path)
+	{
 		using (var ffmpeg = CreateFFmpeg(path))
 		{
 			using (var stream = client.CreatePCMStream(AudioApplication.Music))
 			{
 				try
 				{
-					ffmpeg.StandardOutput.BaseStream.CopyTo(stream);
+					await ffmpeg.StandardOutput.BaseStream.CopyToAsync(stream);
 				}
 				finally
 				{
-					stream.Flush();
+					await stream.FlushAsync();
+				}		
+			}
+		}
+	}
+
+	private async Task DirectPCM(string path)
+	{
+		using (var ffmpeg = CreateFFmpeg(path))
+		{
+			using (var stream = client.CreateDirectPCMStream(AudioApplication.Music))
+			{
+				try
+				{
+					client.voiceClient.ToggleSpeaking(true);
+					await ffmpeg.StandardOutput.BaseStream.CopyToAsync(stream);
 				}
+				finally
+				{
+					await stream.FlushAsync();
+					client.voiceClient.ToggleSpeaking(false);
+				}		
 			}
 		}
 	}
@@ -60,7 +95,7 @@ public class DiscordTest : MonoBehaviour
 	{
 		return Process.Start(new ProcessStartInfo
 		{
-			FileName = $"{Application.dataPath}/ffmpeg/ffmpeg.exe",
+			FileName = $"{appDataPath}/ffmpeg/ffmpeg.exe",
 			Arguments = $"-hide_banner -loglevel panic -i \"{path}\" -ac 2 -f s16le -ar 48000 pipe:1",
 			UseShellExecute = false,
 			RedirectStandardOutput = true,

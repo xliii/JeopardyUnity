@@ -82,6 +82,6 @@ public abstract class AbstractGatewayClient : IDisposable
 
     public void Dispose()
     {
-        ws.CloseAsync();
+        ws?.CloseAsync();
     }
 }

@@ -101,7 +101,6 @@ public class DiscordVoiceClient : IDisposable
 		heartbeatService.Start();
 		//Initialize UDP
 		udpClient = new VoiceUdpClient(e.ip, e.port, e.ssrc);
-		Debug.Log("SSRC: " + e.ssrc);
 		udpClient.Start();
 	}
 	
@@ -173,9 +172,9 @@ public class DiscordVoiceClient : IDisposable
 
 	public void Dispose()
 	{
-		voiceGateway.Dispose();
-		heartbeatService.Dispose();
-		udpClient.Dispose();
+		voiceGateway?.Dispose();
+		heartbeatService?.Dispose();
+		udpClient?.Dispose();
 	}
 
 	public void SendVoice(AudioClip audioClip)
